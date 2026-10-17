@@ -1,0 +1,5 @@
+# Old addresses now live under /schools
+/smart-cubby-demo            /schools/smart-cubby-demo/        301
+/smart-cubby-demo/*          /schools/smart-cubby-demo/:splat  301
+/smart-cubby-overview.pdf    /schools/smart-cubby-overview.pdf 301
+/cabinet.jpg                 /schools/cabinet.jpg              301

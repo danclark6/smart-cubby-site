@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flashcards · Smart Cubby</title>
+<meta name="description" content="Make flashcards, quiz yourself, and share sets with classmates using a code. Free, no ads, no sign ups.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@600;700&display=swap">
+<style>
+/* Layout: index cards on a pigeon-grey desk. Same palette as the Smart Cubby homepage; cards get the ruled blue lines and red header rule of a real index card. */
+:root {
+  --sky: #eef2f7;
+  --panel: #ffffff;
+  --ink: #232a3a;
+  --muted: #5d6679;
+  --line: #d9dfe9;
+  --feather: #9aa3b5;
+  --feather-light: #c9cfdb;
+  --teal: #1f8a83;
+  --violet: #7651a8;
+  --coral: #e0705a;
+  --brass: #c99a2e;
+  --good: #23874a;
+  --bad: #c8463a;
+  --rule: rgba(31,138,131,.22);
+  --card-back: #f2fbf9;
+  --on-accent: #ffffff;
+  --f-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky: #141924; --panel: #1d2432; --ink: #e9edf4; --muted: #a2abbd; --line: #2e3748;
+    --feather: #8b94a8; --feather-light: #4a5468;
+    --teal: #3cc0b6; --violet: #a98ad6; --coral: #ef8a75; --brass: #e2b54a;
+    --good: #4cc27a; --bad: #f06b5e; --rule: rgba(60,192,182,.18); --card-back: #1a2b30; --on-accent: #10151f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sky: #141924; --panel: #1d2432; --ink: #e9edf4; --muted: #a2abbd; --line: #2e3748;
+  --feather: #8b94a8; --feather-light: #4a5468;
+  --teal: #3cc0b6; --violet: #a98ad6; --coral: #ef8a75; --brass: #e2b54a;
+  --good: #4cc27a; --bad: #f06b5e; --rule: rgba(60,192,182,.18); --card-back: #1a2b30; --on-accent: #10151f;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--sky); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--f-display); margin: 0; line-height: 1.1; text-wrap: balance; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 24px 64px; display: flex; flex-direction: column; gap: 28px; }
+main > section, .wrap .wrap { width: 100%; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.home-link { color: var(--muted); font-weight: 800; font-size: 14px; text-decoration: none; }
+.home-link:hover { color: var(--ink); }
+.page-title { display: flex; align-items: center; gap: 14px; }
+.page-title svg { width: 54px; height: 54px; flex: none; }
+.page-title h1 { font-size: clamp(36px, 6vw, 52px); font-weight: 800; }
+.lede { margin: 0; color: var(--muted); max-width: 60ch; }
+
+/* buttons */
+.btn { border: 2px solid var(--ink); border-radius: 12px; padding: 10px 18px; font-weight: 800; background: var(--panel); box-shadow: 3px 3px 0 var(--ink); transition: transform .08s, box-shadow .08s; }
+.btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+.btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.primary { background: var(--teal); color: var(--on-accent); }
+.btn.good { background: var(--good); color: var(--on-accent); }
+.btn.bad { background: var(--bad); color: var(--on-accent); }
+.btn.quiet { border-color: var(--line); box-shadow: none; color: var(--muted); }
+.btn.quiet:hover { color: var(--ink); border-color: var(--feather); }
+.btn.danger { border-color: var(--bad); color: var(--bad); box-shadow: none; }
+.btn:disabled { opacity: .55; cursor: wait; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* panels */
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.panel { background: var(--panel); border: 2px solid var(--ink); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 6px 6px 0 var(--feather-light); min-width: 0; }
+.panel h2 { font-size: 26px; font-weight: 800; }
+.panel p { margin: 0; color: var(--muted); }
+label { font-weight: 800; font-size: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+input[type="text"], textarea {
+  width: 100%; background: var(--sky); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px;
+}
+input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: none; }
+.code-input { font-family: var(--f-code); font-size: 26px; letter-spacing: .12em; text-transform: uppercase; text-align: center; }
+.msg { font-weight: 700; font-size: 15px; min-height: 1.2em; margin: 0; }
+.msg.error { color: var(--bad); }
+.msg.ok { color: var(--good); }
+
+/* sets on this device */
+.mine { display: flex; flex-direction: column; gap: 10px; }
+.mine h2 { font-size: 22px; font-weight: 800; }
+.mine-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mine-list li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mine-title { font-weight: 800; flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.chip { font-family: var(--f-code); font-weight: 700; font-size: 14px; padding: 2px 8px; border-radius: 6px; background: color-mix(in srgb, var(--violet) 14%, var(--panel)); color: var(--violet); letter-spacing: .06em; }
+.mine-list .btn { padding: 5px 12px; font-size: 14px; box-shadow: none; border-width: 1px; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* editor */
+.editor-cards { display: flex; flex-direction: column; gap: 12px; counter-reset: card; }
+.ecard { display: grid; grid-template-columns: 34px 1fr 1fr 34px; gap: 10px; align-items: start; background: var(--panel); border: 2px solid var(--ink); border-radius: 14px; padding: 12px; }
+.ecard .num { font-family: var(--f-display); font-weight: 800; font-size: 20px; color: var(--muted); text-align: center; padding-top: 6px; }
+.ecard .num::before { counter-increment: card; content: counter(card); }
+.ecard textarea { min-height: 52px; resize: vertical; }
+.ecard .side { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ecard .field { gap: 4px; min-width: 0; }
+.remove { border: 0; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; padding: 6px; border-radius: 8px; }
+.remove:hover { color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.sticky-actions { position: sticky; bottom: 0; padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--sky) 30%); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.confirm { border: 2px solid var(--bad); border-radius: 12px; padding: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: color-mix(in srgb, var(--bad) 8%, var(--panel)); }
+
+/* saved */
+.codebox { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.bigcode { font-family: var(--f-code); font-weight: 700; font-size: clamp(40px, 10vw, 64px); letter-spacing: .1em; line-height: 1; color: var(--violet); }
+.editcode { font-family: var(--f-code); font-weight: 700; font-size: 24px; letter-spacing: .08em; }
+.warn { border-left: 4px solid var(--brass); padding: 6px 12px; background: color-mix(in srgb, var(--brass) 12%, var(--panel)); border-radius: 0 10px 10px 0; color: var(--ink); }
+.sharemsg { font-size: 15px; min-height: 118px; resize: none; }
+
+/* study */
+.study-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.study-head h2 { font-size: clamp(26px, 4vw, 34px); font-weight: 800; overflow-wrap: anywhere; }
+.progress { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--teal); transition: width .25s ease; }
+.counts { display: flex; gap: 16px; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.counts .g { color: var(--good); }
+.counts .b { color: var(--bad); }
+.stage { perspective: 1400px; }
+.flash {
+  position: relative; width: 100%; aspect-ratio: 5 / 3; max-width: 100%; min-height: 220px;
+  border: 0; padding: 0; background: transparent; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.7,.3,1);
+}
+.flash.flipped { transform: rotateY(180deg); }
+.face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border: 2px solid var(--ink); border-radius: 16px; box-shadow: 6px 6px 0 var(--feather-light);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.face.front {
+  background-color: var(--panel);
+  background-image: repeating-linear-gradient(transparent 0 33px, var(--rule) 33px 35px);
+  background-position: 0 58px;
+}
+.face.back { background: var(--card-back); transform: rotateY(180deg); }
+.face-bar { height: 46px; flex: none; border-bottom: 2px solid var(--coral); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.face-text { flex: 1; display: grid; place-items: center; padding: 12px 24px 20px; font-family: var(--f-display); font-weight: 700; font-size: clamp(24px, 4.6vw, 44px); line-height: 1.2; text-align: center; overflow-wrap: anywhere; overflow: auto; white-space: pre-wrap; }
+.face-text.long { font-size: clamp(18px, 2.8vw, 26px); font-family: var(--f-body); }
+.answer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.answer-row .btn { padding: 14px; font-size: 19px; }
+.hint { text-align: center; color: var(--muted); font-size: 14px; margin: 0; }
+.opts { display: flex; gap: 18px; flex-wrap: wrap; font-size: 15px; font-weight: 700; color: var(--muted); }
+.opts label { font-size: 15px; display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+.opts input { width: 18px; height: 18px; accent-color: var(--teal); }
+
+.done { display: flex; flex-direction: column; gap: 14px; }
+.score { font-family: var(--f-display); font-weight: 800; font-size: clamp(48px, 10vw, 72px); line-height: 1; font-variant-numeric: tabular-nums; }
+.missed-list { margin: 0; padding-left: 20px; color: var(--muted); }
+.missed-list b { color: var(--ink); }
+
+@media (max-width: 560px) {
+  .ecard { grid-template-columns: 1fr 34px; }
+  .ecard .num { grid-column: 1; text-align: left; padding: 0; }
+  .ecard .remove { grid-column: 2; grid-row: 1; }
+  .ecard .field { grid-column: 1 / -1; }
+  .flash { aspect-ratio: 4 / 3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash, .btn, .progress div { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <a class="home-link" href="/">&larr; Smart Cubby</a>
+  </div>
+
+  <!-- HOME -->
+  <section id="v-home" class="wrap" style="padding:0">
+    <div class="page-title">
+      <svg viewBox="0 0 60 60" aria-hidden="true">
+        <rect x="6" y="14" width="44" height="30" rx="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="2.5" transform="rotate(-8 28 29)"/>
+        <rect x="12" y="18" width="44" height="30" rx="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="2.5"/>
+        <path d="M12 26 H56" stroke="var(--coral)" stroke-width="2"/>
+        <path d="M18 34 H50 M18 40 H44" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h1>Flashcards</h1>
+    </div>
+    <p class="lede">Make a set of cards and quiz yourself. Every set gets a code you can email to classmates so they can study it too.</p>
+
+    <div class="choices">
+      <form class="panel" id="openForm" autocomplete="off">
+        <h2>Study a set</h2>
+        <p>Got a code from a classmate? Type it here.</p>
+        <div class="field">
+          <label for="codeInput">Set code</label>
+          <input type="text" id="codeInput" class="code-input" placeholder="K7P-4RW" maxlength="9" spellcheck="false" autocapitalize="characters">
+        </div>
+        <div class="row"><button class="btn primary" id="openBtn" type="submit">Open set</button></div>
+        <p class="msg" id="openMsg" role="status"></p>
+      </form>
+      <div class="panel">
+        <h2>Make a new set</h2>
+        <p>Type a word or question on the front and the answer on the back. French vocab, state capitals, science terms, anything.</p>
+        <div class="row"><button class="btn primary" id="newBtn" type="button">Start a new set</button></div>
+      </div>
+    </div>
+
+    <div class="mine" id="mineBox" hidden>
+      <h2>Sets on this device</h2>
+      <ul class="mine-list" id="mineList"></ul>
+      <p class="note">This list is saved only in this browser. On a shared computer, press Forget when you're done.</p>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="v-edit" hidden>
+    <form id="editForm" class="wrap" style="padding:0" autocomplete="off">
+      <div class="study-head">
+        <h2 id="editHeading">New set</h2>
+        <span class="chip" id="editCodeChip" hidden></span>
+      </div>
+      <div class="field">
+        <label for="setTitle">Set name</label>
+        <input type="text" id="setTitle" maxlength="80" placeholder="French: Chapter 3 food words">
+      </div>
+      <div class="editor-cards" id="editorCards"></div>
+      <div class="row">
+        <button class="btn quiet" type="button" id="addCardBtn">+ Add a card</button>
+        <span class="note">Tip: press Enter in an answer box to add the next card.</span>
+      </div>
+      <div class="confirm" id="deleteConfirm" hidden>
+        <span><b>Delete this set for everyone?</b> Classmates using the code won't be able to open it anymore.</span>
+        <button class="btn bad" type="button" id="deleteYes">Delete it</button>
+        <button class="btn quiet" type="button" id="deleteNo">Keep it</button>
+      </div>
+      <div class="sticky-actions">
+        <button class="btn primary" type="submit" id="saveBtn">Save set</button>
+        <button class="btn quiet" type="button" id="cancelEditBtn">Cancel</button>
+        <button class="btn danger" type="button" id="deleteBtn" hidden>Delete set</button>
+        <p class="msg" id="editMsg" role="status"></p>
+      </div>
+    </form>
+  </section>
+
+  <!-- SAVED -->
+  <section id="v-saved" class="wrap" style="padding:0" hidden>
+    <h2 style="font-size:34px;font-weight:800">Your set is saved!</h2>
+    <div class="panel">
+      <div class="codebox">
+        <label>Share code</label>
+        <div class="bigcode" id="savedCode">K7P-4RW</div>
+        <p>Give this code to classmates so they can study your set.</p>
+      </div>
+      <div class="field">
+        <label for="shareMsg">Message to paste into an email</label>
+        <textarea id="shareMsg" class="sharemsg" readonly></textarea>
+      </div>
+      <div class="row">
+        <button class="btn primary" type="button" id="copyMsgBtn">Copy message</button>
+        <button class="btn quiet" type="button" id="copyCodeBtn">Copy just the code</button>
+        <span class="msg ok" id="copyMsg" role="status"></span>
+      </div>
+    </div>
+    <div class="panel" id="editCodePanel">
+      <label>Your edit code</label>
+      <div class="editcode" id="savedEditCode">ABCD-EFGH</div>
+      <p class="warn">Keep this one to yourself. You need it to fix or delete your set later. Classmates only need the share code.</p>
+      <div class="row"><button class="btn quiet" type="button" id="copyEditBtn">Copy edit code</button></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" type="button" id="studyNowBtn">Study it now</button>
+      <button class="btn quiet" type="button" id="savedHomeBtn">Back to Flashcards</button>
+    </div>
+  </section>
+
+  <!-- UNLOCK FOR EDITING -->
+  <section id="v-unlock" hidden>
+    <form class="panel" id="unlockForm" autocomplete="off" style="max-width:460px">
+      <h2>Edit this set</h2>
+      <p>Type the edit code you got when the set was made.</p>
+      <div class="field">
+        <label for="unlockInput">Edit code</label>
+        <input type="text" id="unlockInput" class="code-input" placeholder="ABCD-EFGH" maxlength="11" spellcheck="false" autocapitalize="characters" style="font-size:22px">
+      </div>
+      <div class="row">
+        <button class="btn primary" type="submit">Edit set</button>
+        <button class="btn quiet" type="button" id="unlockCancel">Back</button>
+      </div>
+      <p class="msg" id="unlockMsg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- STUDY -->
+  <section id="v-study" class="wrap" style="padding:0" hidden>
+    <div class="study-head">
+      <div>
+        <h2 id="studyTitle">Set</h2>
+        <span class="chip" id="studyCode"></span>
+      </div>
+      <div class="counts"><span id="cardPos">Card 1 of 1</span><span class="g" id="rightCount">0 right</span><span class="b" id="wrongCount">0 missed</span></div>
+    </div>
+    <div class="progress"><div id="progressFill"></div></div>
+
+    <div id="studyActive" class="wrap" style="padding:0;gap:18px">
+      <div class="stage">
+        <button class="flash" id="flash" type="button" aria-live="polite">
+          <div class="face front"><div class="face-bar"><span id="frontLabel">Front</span><span>Tap to flip</span></div><div class="face-text" id="frontText"></div></div>
+          <div class="face back"><div class="face-bar"><span id="backLabel">Back</span><span>Did you get it?</span></div><div class="face-text" id="backText"></div></div>
+        </button>
+      </div>
+      <p class="hint" id="flipHint">Think of the answer, then tap the card or press Space to check.</p>
+      <div class="answer-row" id="answerRow" hidden>
+        <button class="btn bad" type="button" id="wrongBtn">✗ I missed it</button>
+        <button class="btn good" type="button" id="rightBtn">✓ I got it</button>
+      </div>
+    </div>
+
+    <div class="panel done" id="studyDone" hidden>
+      <label>Round finished</label>
+      <div class="score" id="doneScore">0 / 0</div>
+      <p id="doneLine"></p>
+      <ul class="missed-list" id="missedList"></ul>
+      <div class="row">
+        <button class="btn primary" type="button" id="againMissedBtn">Study the ones I missed</button>
+        <button class="btn quiet" type="button" id="restartBtn">Start over with all cards</button>
+      </div>
+    </div>
+
+    <div class="opts">
+      <label><input type="checkbox" id="optShuffle" checked> Shuffle cards</label>
+      <label><input type="checkbox" id="optReverse"> Show the back first</label>
+    </div>
+    <div class="row">
+      <button class="btn quiet" type="button" id="studyHomeBtn">&larr; All sets</button>
+      <button class="btn quiet" type="button" id="studyShareBtn">Share code</button>
+      <button class="btn quiet" type="button" id="studyEditBtn">Edit this set</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const API = "/api/sets";
+  const views = ["home", "edit", "saved", "unlock", "study"];
+  let current = null;      // the loaded set {code, title, cards}
+  let editing = null;      // {code, editCode} when editing an existing set
+  let deck = [], idx = 0, right = 0, wrong = 0, missed = [], roundCards = [];
+
+  function show(name) {
+    views.forEach((v) => { $("v-" + v).hidden = v !== name; });
+    window.scrollTo(0, 0);
+  }
+
+  function setMsg(el, text, kind) { el.textContent = text || ""; el.className = "msg" + (kind ? " " + kind : ""); }
+
+  function fmtCode(raw) {
+    const c = String(raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return c.length === 6 ? c.slice(0, 3) + "-" + c.slice(3) : c;
+  }
+
+  // ---- this-device list (best effort; never required) ----
+  const KEY = "smartcubby.flashcards.v1";
+  function loadMine() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } }
+  function saveMine(list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 40))); } catch {} }
+  function remember(code, title, editCode) {
+    const list = loadMine().filter((s) => s.code !== code);
+    const prev = loadMine().find((s) => s.code === code);
+    list.unshift({ code, title, editCode: editCode || (prev && prev.editCode) || null });
+    saveMine(list); renderMine();
+  }
+  function forget(code) { saveMine(loadMine().filter((s) => s.code !== code)); renderMine(); }
+  function editCodeFor(code) { const s = loadMine().find((x) => x.code === code); return s && s.editCode; }
+
+  function renderMine() {
+    const list = loadMine();
+    $("mineBox").hidden = list.length === 0;
+    const ul = $("mineList"); ul.textContent = "";
+    list.forEach((s) => {
+      const li = document.createElement("li");
+      const t = document.createElement("span"); t.className = "mine-title"; t.textContent = s.title;
+      const chip = document.createElement("span"); chip.className = "chip"; chip.textContent = s.code;
+      const study = document.createElement("button"); study.type = "button"; study.className = "btn primary"; study.textContent = "Study";
+      study.onclick = () => openSet(s.code);
+      li.append(t, chip, study);
+      if (s.editCode) {
+        const ed = document.createElement("button"); ed.type = "button"; ed.className = "btn"; ed.textContent = "Edit";
+        ed.onclick = async () => { if (await openSet(s.code, true)) startEditExisting(s.editCode); };
+        li.append(ed);
+      }
+      const f = document.createElement("button"); f.type = "button"; f.className = "btn quiet"; f.textContent = "Forget";
+      f.onclick = () => forget(s.code);
+      li.append(f);
+      ul.append(li);
+    });
+  }
+
+  // ---- API ----
+  async function api(method, path, body) {
+    let res;
+    try {
+      res = await fetch(API + path, {
+        method, headers: body ? { "content-type": "application/json" } : {},
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw new Error("Couldn't reach Smart Cubby. Check your internet connection and try again.");
+    }
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) throw new Error(data.error || "Something went wrong. Try again in a minute.");
+    return data;
+  }
+
+  // ---- open a set ----
+  async function openSet(code, quiet) {
+    const msg = $("openMsg");
+    const c = fmtCode(code);
+    if (c.replace("-", "").length !== 6) { setMsg(msg, "Codes have 6 letters and numbers, like K7P-4RW.", "error"); show("home"); return false; }
+    setMsg(msg, "Opening…"); $("openBtn").disabled = true;
+    try {
+      current = await api("GET", "/" + encodeURIComponent(c));
+      setMsg(msg, "");
+      remember(current.code, current.title);
+      try { history.replaceState(null, "", "#" + current.code); } catch {}
+      if (!quiet) startStudy(current.cards);
+      return true;
+    } catch (e) {
+      setMsg(msg, e.message, "error"); show("home"); return false;
+    } finally { $("openBtn").disabled = false; }
+  }
+
+  $("openForm").addEventListener("submit", (e) => { e.preventDefault(); openSet($("codeInput").value); });
+  $("codeInput").addEventListener("input", (e) => {
+    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    e.target.value = raw.length > 3 ? raw.slice(0, 3) + "-" + raw.slice(3) : raw;
+  });
+
+  // ---- editor ----
+  function addCardRow(front = "", back = "", focus = false) {
+    const wrap = document.createElement("div"); wrap.className = "ecard";
+    const num = document.createElement("div"); num.className = "num";
+    const mk = (labelText, val, cls) => {
+      const f = document.createElement("div"); f.className = "field";
+      const l = document.createElement("span"); l.className = "side"; l.textContent = labelText;
+      const t = document.createElement("textarea"); t.className = cls; t.value = val; t.maxLength = 300; t.rows = 2;
+      t.setAttribute("aria-label", labelText);
+      f.append(l, t); return [f, t];
+    };
+    const [ff, ft] = mk("Front", front, "fr");
+    const [bf, bt] = mk("Back", back, "bk");
+    bt.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const next = wrap.nextElementSibling;
+        if (next) next.querySelector(".fr").focus(); else addCardRow("", "", true);
+      }
+    });
+    const rm = document.createElement("button"); rm.type = "button"; rm.className = "remove"; rm.setAttribute("aria-label", "Remove this card"); rm.textContent = "×";
+    rm.onclick = () => { wrap.remove(); if (!$("editorCards").children.length) addCardRow(); };
+    wrap.append(num, ff, bf, rm);
+    $("editorCards").append(wrap);
+    if (focus) ft.focus();
+  }
+
+  function fillEditor(title, cards) {
+    $("setTitle").value = title || "";
+    $("editorCards").textContent = "";
+    (cards && cards.length ? cards : [{ front: "", back: "" }, { front: "", back: "" }, { front: "", back: "" }])
+      .forEach((c) => addCardRow(c.front, c.back));
+    setMsg($("editMsg"), "");
+    $("deleteConfirm").hidden = true;
+  }
+
+  function startNew() {
+    editing = null;
+    $("editHeading").textContent = "New set";
+    $("editCodeChip").hidden = true;
+    $("deleteBtn").hidden = true;
+    fillEditor("", null);
+    show("edit");
+    $("setTitle").focus();
+  }
+
+  function startEditExisting(editCode) {
+    editing = { code: current.code, editCode };
+    $("editHeading").textContent = "Edit set";
+    $("editCodeChip").textContent = current.code; $("editCodeChip").hidden = false;
+    $("deleteBtn").hidden = false;
+    fillEditor(current.title, current.cards);
+    show("edit");
+  }
+
+  function readEditor() {
+    const cards = [...$("editorCards").children].map((r) => ({
+      front: r.querySelector(".fr").value.trim(), back: r.querySelector(".bk").value.trim(),
+    })).filter((c) => c.front || c.back);
+    return { title: $("setTitle").value.trim(), cards };
+  }
+
+  $("newBtn").onclick = startNew;
+  $("addCardBtn").onclick = () => addCardRow("", "", true);
+  $("cancelEditBtn").onclick = () => { if (editing && current) show("study"); else show("home"); };
+
+  $("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("editMsg");
+    const set = readEditor();
+    if (!set.title) { setMsg(msg, "Give your set a name.", "error"); $("setTitle").focus(); return; }
+    if (!set.cards.length) { setMsg(msg, "Add at least one card.", "error"); return; }
+    const half = set.cards.findIndex((c) => !c.front || !c.back);
+    if (half >= 0) { setMsg(msg, `Card ${half + 1} needs both a front and a back.`, "error"); return; }
+    $("saveBtn").disabled = true; setMsg(msg, "Saving…");
+    try {
+      if (editing) {
+        current = await api("PUT", "/" + editing.code, { ...set, editCode: editing.editCode });
+        remember(current.code, current.title, editing.editCode);
+        setMsg(msg, "");
+        startStudy(current.cards);
+      } else {
+        const res = await api("POST", "", set);
+        current = { code: res.code, title: res.title, cards: res.cards };
+        remember(res.code, res.title, res.editCode);
+        try { history.replaceState(null, "", "#" + res.code); } catch {}
+        showSaved(res.code, res.title, res.editCode);
+      }
+    } catch (err) {
+      setMsg(msg, err.message, "error");
+    } finally { $("saveBtn").disabled = false; }
+  });
+
+  $("deleteBtn").onclick = () => { $("deleteConfirm").hidden = false; $("deleteConfirm").scrollIntoView({ block: "nearest" }); };
+  $("deleteNo").onclick = () => { $("deleteConfirm").hidden = true; };
+  $("deleteYes").onclick = async () => {
+    try {
+      await api("DELETE", "/" + editing.code, { editCode: editing.editCode });
+      forget(editing.code); current = null; editing = null;
+      try { history.replaceState(null, "", location.pathname); } catch {}
+      show("home"); setMsg($("openMsg"), "Set deleted.", "ok");
+    } catch (err) { setMsg($("editMsg"), err.message, "error"); $("deleteConfirm").hidden = true; }
+  };
+
+  // ---- saved / share ----
+  function shareText(code, title) {
+    const link = location.origin + "/flashcards/#" + code;
+    return `Study my flashcards "${title}" on Smart Cubby!\n\nGo to ${link}\nor go to ${location.host}/flashcards and type the code: ${code}`;
+  }
+  function showSaved(code, title, editCode) {
+    $("savedCode").textContent = code;
+    $("shareMsg").value = shareText(code, title);
+    $("editCodePanel").hidden = !editCode;
+    $("savedEditCode").textContent = editCode || "";
+    setMsg($("copyMsg"), "");
+    show("saved");
+  }
+  async function copy(text, sourceEl) {
+    try { await navigator.clipboard.writeText(text); setMsg($("copyMsg"), "Copied!", "ok"); }
+    catch {
+      if (sourceEl && sourceEl.select) { sourceEl.focus(); sourceEl.select(); }
+      setMsg($("copyMsg"), "Press Ctrl+C (or ⌘+C) to copy.", "ok");
+    }
+  }
+  $("copyMsgBtn").onclick = () => copy($("shareMsg").value, $("shareMsg"));
+  $("copyCodeBtn").onclick = () => copy($("savedCode").textContent);
+  $("copyEditBtn").onclick = () => copy($("savedEditCode").textContent);
+  $("studyNowBtn").onclick = () => startStudy(current.cards);
+  $("savedHomeBtn").onclick = () => { show("home"); renderMine(); };
+
+  // ---- unlock ----
+  $("studyEditBtn").onclick = () => {
+    const known = editCodeFor(current.code);
+    if (known) { startEditExisting(known); return; }
+    $("unlockInput").value = ""; setMsg($("unlockMsg"), "");
+    show("unlock"); $("unlockInput").focus();
+  };
+  $("unlockCancel").onclick = () => show("study");
+  $("unlockForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = $("unlockInput").value.trim();
+    if (!code) { setMsg($("unlockMsg"), "Type your edit code.", "error"); return; }
+    // Check the code by saving the set unchanged.
+    try {
+      await api("PUT", "/" + current.code, { editCode: code, title: current.title, cards: current.cards });
+      remember(current.code, current.title, code.toUpperCase());
+      startEditExisting(code.toUpperCase());
+    } catch (err) { setMsg($("unlockMsg"), err.message, "error"); }
+  });
+
+  $("studyShareBtn").onclick = () => showSaved(current.code, current.title, null);
+  $("studyHomeBtn").onclick = () => { try { history.replaceState(null, "", location.pathname); } catch {} show("home"); renderMine(); };
+
+  // ---- study ----
+  function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+
+  function startStudy(cards) {
+    roundCards = cards.slice();
+    deck = $("optShuffle").checked ? shuffle(roundCards) : roundCards.slice();
+    idx = 0; right = 0; wrong = 0; missed = [];
+    $("studyTitle").textContent = current.title;
+    $("studyCode").textContent = current.code;
+    $("studyActive").hidden = false; $("studyDone").hidden = true;
+    show("study");
+    renderCard();
+  }
+
+  function sizeText(el, text) { el.textContent = text; el.classList.toggle("long", text.length > 60); }
+
+  function renderCard() {
+    const card = deck[idx];
+    const rev = $("optReverse").checked;
+    $("flash").classList.remove("flipped");
+    $("frontLabel").textContent = rev ? "Back" : "Front";
+    $("backLabel").textContent = rev ? "Front" : "Back";
+    sizeText($("frontText"), rev ? card.back : card.front);
+    sizeText($("backText"), rev ? card.front : card.back);
+    $("answerRow").hidden = true; $("flipHint").hidden = false;
+    $("cardPos").textContent = `Card ${idx + 1} of ${deck.length}`;
+    $("rightCount").textContent = `${right} right`;
+    $("wrongCount").textContent = `${wrong} missed`;
+    $("progressFill").style.width = (idx / deck.length * 100) + "%";
+  }
+
+  function flip() {
+    if ($("studyActive").hidden) return;
+    const f = $("flash");
+    f.classList.toggle("flipped");
+    if (f.classList.contains("flipped")) { $("answerRow").hidden = false; $("flipHint").hidden = true; }
+  }
+  $("flash").onclick = flip;
+
+  function answer(gotIt) {
+    if ($("answerRow").hidden) return;
+    if (gotIt) right++; else { wrong++; missed.push(deck[idx]); }
+    idx++;
+    if (idx >= deck.length) finishRound(); else renderCard();
+  }
+  $("rightBtn").onclick = () => answer(true);
+  $("wrongBtn").onclick = () => answer(false);
+
+  function finishRound() {
+    $("progressFill").style.width = "100%";
+    $("rightCount").textContent = `${right} right`;
+    $("wrongCount").textContent = `${wrong} missed`;
+    $("cardPos").textContent = `${deck.length} cards`;
+    $("studyActive").hidden = true; $("studyDone").hidden = false;
+    $("doneScore").textContent = `${right} / ${deck.length}`;
+    const ul = $("missedList"); ul.textContent = "";
+    if (!missed.length) {
+      $("doneLine").textContent = "You got every card. Nice work!";
+      $("againMissedBtn").hidden = true;
+    } else {
+      $("doneLine").textContent = missed.length === 1 ? "You missed 1 card:" : `You missed ${missed.length} cards:`;
+      missed.forEach((c) => {
+        const li = document.createElement("li");
+        const b = document.createElement("b"); b.textContent = c.front;
+        li.append(b, document.createTextNode(" = " + c.back));
+        ul.append(li);
+      });
+      $("againMissedBtn").hidden = false;
+    }
+  }
+  $("againMissedBtn").onclick = () => {
+    const m = missed.slice();
+    deck = $("optShuffle").checked ? shuffle(m) : m;
+    idx = 0; right = 0; wrong = 0; missed = [];
+    $("studyActive").hidden = false; $("studyDone").hidden = true;
+    renderCard();
+  };
+  $("restartBtn").onclick = () => startStudy(current.cards);
+  $("optReverse").onchange = () => { if (!$("studyActive").hidden && deck.length) renderCard(); };
+  $("optShuffle").onchange = () => { if (current) startStudy(current.cards); };
+
+  document.addEventListener("keydown", (e) => {
+    if ($("v-study").hidden || $("studyActive").hidden) return;
+    if (e.target.closest("input, textarea")) return;
+    if (e.key === " " || e.key === "Enter") { if (e.target.id !== "rightBtn" && e.target.id !== "wrongBtn") { e.preventDefault(); flip(); } }
+    else if (e.key === "ArrowRight") answer(true);
+    else if (e.key === "ArrowLeft") answer(false);
+  });
+
+  // ---- start ----
+  renderMine();
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash) { $("codeInput").value = fmtCode(hash); openSet(hash); } else show("home");
+})();
+</script>
+</body>
+</html>

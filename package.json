@@ -1,0 +1,9 @@
+{
+  "name": "smart-cubby-site",
+  "private": true,
+  "type": "module",
+  "description": "smart-cubby.com website, deployed by Netlify",
+  "dependencies": {
+    "@netlify/blobs": "10.7.13"
+  }
+}

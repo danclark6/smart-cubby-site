@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cubby</title>
+    <style>
+        /* 1990s Classroom Palette & Retro Style */
+        :root {
+            --bg-color: #efeadd;
+            --card-bg: #f7f4eb;
+            --text-color: #222222;
+            --border-color: #2c2c2c;
+            --brand-blue: #1b3b6f;
+            --box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            padding: 0 1.25rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1.5rem 0;
+        }
+
+        /* Header / Nav */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo-brand {
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: var(--brand-blue);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-product {
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: var(--border-color);
+            color: var(--bg-color);
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            background-color: var(--brand-blue);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.65rem 1.2rem;
+            font-weight: 700;
+            border: 2px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color);
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.8rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero {
+                grid-template-columns: 1.1fr 0.9fr;
+            }
+        }
+
+        .hero h1 {
+            font-size: 2.3rem;
+            line-height: 1.2;
+            color: var(--brand-blue);
+            margin-bottom: 1.2rem;
+        }
+
+        @media (min-width: 768px) {
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        /* Cabinet Image Container */
+        .hero-image-wrapper {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 0.6rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .hero-image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero-image-caption {
+            font-family: monospace;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            color: #444;
+            font-weight: 600;
+        }
+
+        /* Section Styling */
+        .section-title {
+            font-size: 1.6rem;
+            color: var(--brand-blue);
+            margin-bottom: 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        section {
+            margin-bottom: 3.5rem;
+        }
+
+        /* Card Layouts */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .card-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 1.25rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .card h3 {
+            margin-bottom: 0.6rem;
+            color: var(--brand-blue);
+            font-size: 1.15rem;
+        }
+
+        /* Comparison Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--box-shadow);
+            text-align: left;
+            min-width: 500px;
+        }
+
+        th, td {
+            padding: 0.9rem;
+            border: 1px solid var(--border-color);
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #e2dccb;
+            color: var(--brand-blue);
+            font-size: 1rem;
+        }
+
+        /* FAQ Styling */
+        .faq-item {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: 3px 3px 0px var(--border-color);
+        }
+
+        .faq-item h4 {
+            color: var(--brand-blue);
+            margin-bottom: 0.4rem;
+            font-size: 1.05rem;
+        }
+
+        /* Footer CTA Box */
+        .cta-box {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+
+        .cta-box h2 {
+            color: var(--brand-blue);
+            margin-bottom: 0.6rem;
+            font-size: 1.8rem;
+        }
+
+        footer {
+            border-top: 2px solid var(--border-color);
+            padding: 1.5rem 0 1rem 0;
+            text-align: center;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+        }
+
+        footer p {
+            margin-bottom: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Navigation Header -->
+        <header>
+            <div class="logo-group">
+                <span class="logo-brand">Pigeon</span>
+                <span class="logo-product">Smart Cubby</span>
+            </div>
+            <div class="nav-links">
+                <a href="smart-cubby-overview.pdf" target="_blank" class="btn btn-secondary">Download PDF</a>
+                <a href="mailto:info@smart-cubby.com" class="btn">Get in Touch</a>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div>
+                <h1>Every phone in its place. At a glance.</h1>
+                <p>A simple, physical hallway cabinet system that eliminates phone distractions, protects instructional time, and helps students build real-world habits.</p>
+                
+            </div>
+
+            <!-- Hardware Photo Display -->
+            <div class="hero-image-wrapper">
+                <img src="cabinet.jpg" alt="Pigeon Smart Cubby Cabinet with Live LED Indicators">
+                <div class="hero-image-caption">
+                    LIVE STATUS: RED = IN CLASS | GREEN = FREE
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: How It Works -->
+        <section>
+            <h2 class="section-title">How It Works</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Real-Time Status</h3>
+                    <p>An LED light on each slot shows class status live: <strong>Red</strong> means the student is in class, and <strong>Green</strong> means they are in a free period.</p>
+                </div>
+                <div class="card">
+                    <h3>2. At-a-Glance Compliance</h3>
+                    <p>Teachers and administrators can instantly check compliance from down the hall. If a slot is red and empty, the phone is missing.</p>
+                </div>
+                <div class="card">
+                    <h3>3. Grade-Level Flexibility</h3>
+                    <p>Set custom policies by grade. Keep phones docked all day for underclassmen, or allow free-period access for upperclassmen.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Simple Administration & Privacy -->
+        <section>
+            <h2 class="section-title">Simple Administration & Privacy First</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Privacy by Coordinates</h3>
+                    <p>Slots use coordinate numbers (like <code>A14</code> or <code>A15</code>) instead of student names, ensuring complete identity privacy for anyone walking down the hall.</p>
+                </div>
+                <div class="card">
+                    <h3>Blackbaud SKY API Integration</h3>
+                    <p>Syncs directly with your school management system to track student class schedules and free periods automatically in real time.</p>
+                </div>
+                <div class="card">
+                    <h3>Simple Accountability</h3>
+                    <p>Staff scan the cabinet's QR code and tap an empty slot to log an issue. Automated end-of-day emails keep students, parents, and deans informed without classroom friction.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Why Cabinets vs Pouches -->
+        <section>
+            <h2 class="section-title">Why a Cabinet Instead of Phone Pouches?</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Pigeon Smart Cubby</th>
+                            <th>Traditional Pouches (e.g. Yondr)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Teacher Workload</strong></td>
+                            <td>Zero classroom disruption. Monitoring happens quickly in hallway corridors.</td>
+                            <td>High friction. Teachers must spot violations, stop teaching, and handle administrative paperwork.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tamper Resistance</strong></td>
+                            <td>Easy to check, hard to fake. Visual lights ensure immediate compliance visibility.</td>
+                            <td>Bypassed easily using cheap magnets or physical force.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Long-Term Value</strong></td>
+                            <td>Durable physical unit with flexible wall-mount or mobile rolling configurations.</td>
+                            <td>Ongoing replacement costs due to lost, damaged, or stolen pouches over time.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Habit Building</strong></td>
+                            <td>Teaches students the real-world skill of putting phones away in a designated spot to focus.</td>
+                            <td>Relies on artificial locking devices that students will never encounter outside of school.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 4: FAQ -->
+        <section>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <h4>Is the unit permanent or portable?</h4>
+                <p>It can be built either way. Smart Cubby cabinets can be mounted stationary on hallway walls or configured on heavy-duty wheels to roll into a storage closet when needed. It is modular too so cabinets come in a variety of cubby counts. </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>How much time does monitoring take for staff?</h4>
+                <p>Very little. Assigned staff take less than a minute to check cubbies two or three times a day. Because compliance is visible at a glance, any staff member walking past can also check status easily.</p>
+            </div>
+
+            <div class="faq-item">
+                <h4>How does the system know when a student has a free period?</h4>
+                <p>The system connects with your school management system (via Blackbaud SKY API) to automatically update individual cubby LED lights based on the student's live schedule.</p>
+            </div>
+        </section>
+
+        <!-- Footer CTA Box -->
+        <section class="cta-box">
+            <h2>Ready for a Focused Classroom?</h2>
+            <p>Get in touch with us to schedule a discussion or request a test unit for your campus.</p>
+            <div class="btn-group" style="justify-content: center;">
+                <a href="mailto:info@smart-cubby.com" class="btn">Email: info@smart-cubby.com</a>
+                <a href="smart-cubby-overview.pdf" target="_blank" class="btn btn-secondary">Download PDF Overview</a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; Pigeon. All rights reserved.</p>
+            <p>Contact: <a href="mailto:info@smart-cubby.com" style="color: var(--brand-blue);">info@smart-cubby.com</a></p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

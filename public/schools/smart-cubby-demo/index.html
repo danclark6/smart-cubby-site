@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cubby — Faculty Portal Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Retro Classroom Palette & Style from smart-cubby.com */
+        :root {
+            --bg-color: #efeadd;
+            --card-bg: #f7f4eb;
+            --text-color: #222222;
+            --border-color: #2c2c2c;
+            --brand-blue: #1b3b6f;
+            --brand-red: #c92a2a;
+            --brand-green: #2b8a3e;
+            --box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            padding: 0 1rem;
+        }
+
+        .container-custom {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 1.5rem 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-group { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; text-decoration: none; }
+        .logo-brand { font-weight: 900; font-size: 1.6rem; color: var(--brand-blue); letter-spacing: -0.5px; }
+        .logo-product { font-weight: 700; font-size: 0.9rem; background: var(--border-color); color: var(--bg-color); padding: 3px 8px; border-radius: 3px; }
+
+        .badge-period {
+            font-weight: 700; font-size: 0.9rem; background: var(--brand-blue); color: #ffffff;
+            padding: 4px 10px; border: 2px solid var(--border-color); box-shadow: 2px 2px 0px var(--border-color);
+        }
+
+        .card-retro {
+            background-color: var(--card-bg); border: 2px solid var(--border-color);
+            padding: 1.5rem; box-shadow: var(--box-shadow); margin-bottom: 1.5rem;
+        }
+
+        .btn-retro {
+            display: block; background-color: var(--brand-blue); color: #ffffff !important;
+            text-decoration: none; padding: 0.65rem 1.2rem; font-weight: 700; border: 2px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color); cursor: pointer; font-size: 0.95rem; text-align: center; width: 100%;
+        }
+
+        .btn-retro:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0px var(--border-color); }
+
+        .btn-retro-secondary {
+            background-color: var(--card-bg); color: var(--text-color) !important;
+            border: 2px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color);
+            font-weight: 700; padding: 0.4rem 0.8rem; font-size: 0.85rem; text-decoration: none; cursor: pointer;
+        }
+
+        .btn-retro-danger {
+            background-color: var(--brand-red); color: #ffffff !important; border: 2px solid var(--border-color);
+            box-shadow: 3px 3px 0px var(--border-color); font-weight: 700; font-size: 1.05rem; padding: 0.8rem;
+            cursor: pointer; width: 100%;
+        }
+
+        .cubby-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+        .cubby-btn-retro {
+            height: 50px; font-weight: 800; font-size: 0.85rem; border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0px var(--border-color); background-color: var(--bg-color); color: var(--brand-blue);
+            display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer;
+        }
+
+        .cubby-btn-retro.flagged { background-color: var(--brand-red); color: #ffffff; }
+
+        .notice-box { background-color: #e2dccb; border: 2px solid var(--border-color); padding: 0.8rem; font-weight: 600; text-align: center; }
+        .badge-retro-red { background-color: var(--brand-red); color: #ffffff; border: 1px solid var(--border-color); padding: 4px 8px; font-weight: 700; font-size: 0.85rem; }
+        .badge-retro-green { background-color: var(--brand-green); color: #ffffff; border: 1px solid var(--border-color); padding: 4px 8px; font-weight: 700; font-size: 0.85rem; }
+        .alert-retro { background-color: #fff3bf; border: 2px solid var(--border-color); box-shadow: 3px 3px 0px var(--border-color); color: var(--text-color); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="container-custom">
+    <header>
+        <div class="logo-group" onclick="showView('cabinets')">
+            <span class="logo-brand">Smart Cubby</span>
+            <span class="logo-product">Faculty Portal</span>
+        </div>
+        <span class="badge-period">Period 3</span>
+    </header>
+
+    <div id="alert-area"></div>
+
+    <!-- VIEW 1: CABINET SELECTION -->
+    <div id="view-cabinets" class="card-retro text-center">
+        <h3 class="fw-bold mb-2" style="color: var(--brand-blue);">Select Cabinet Location</h3>
+        <p class="text-muted small mb-4">Choose a hallway cabinet unit to inspect cubbies</p>
+        <div class="d-grid gap-3">
+            <button class="btn-retro" onclick="openCabinet('A')">Cabinet A</button>
+            <button class="btn-retro" onclick="openCabinet('B')">Cabinet B</button>
+            <button class="btn-retro" onclick="openCabinet('C')">Cabinet C</button>
+        </div>
+    </div>
+
+    <!-- VIEW 2: CUBBY GRID -->
+    <div id="view-grid" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn-retro-secondary" onclick="showView('cabinets')">← Change Cabinet</button>
+            <h5 class="mb-0 fw-bold" id="grid-title" style="color: var(--brand-blue);">Cabinet A (48 Slots)</h5>
+        </div>
+        <div class="card-retro">
+            <p class="small text-center mb-3 fw-bold">Tap a slot coordinate to inspect or flag missing phone:</p>
+            <div class="cubby-grid" id="grid-container"></div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: INSPECT CUBBY -->
+    <div id="view-inspect" style="display: none;">
+        <div class="mb-3">
+            <button class="btn-retro-secondary" onclick="showView('grid')">← Back to Grid</button>
+        </div>
+        <div class="card-retro" id="inspect-container"></div>
+    </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-retro p-0">
+            <div class="modal-header border-bottom border-dark p-3">
+                <h5 class="modal-title fw-bold" style="color: var(--brand-blue);">Confirm Tech Infraction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="modal-body-text"></div>
+            <div class="modal-footer border-top border-dark p-3">
+                <button type="button" class="btn-retro-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-retro-danger text-white py-2 px-3 fs-6" style="width: auto;" onclick="submitInfraction()">Yes, Submit Infraction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Random Name Pools
+    const firstNames = ["Liam", "Olivia", "Noah", "Emma", "Oliver", "Ava", "Elijah", "Sophia", "Lucas", "Isabella", "Mason", "Mia", "Ethan", "Harper", "Alexander", "Evelyn", "Jacob", "Abigail", "Michael", "Ella", "Daniel", "Elizabeth", "Henry", "Camila", "Jackson", "Luna", "Sebastian", "Sofia", "Aiden", "Avery"];
+    const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Clark", "Lewis", "Robinson", "Walker"];
+    const classes = ["AP World History", "Algebra II", "Physics C", "English Lit", "US History", "Chemistry", "Biology", "Spanish III", "AP Calculus", "Art History", "Civics", "Geometry"];
+    const grades = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
+
+    // Store generated students in memory
+    const studentDb = {};
+
+    let activeCabinet = "A";
+    let activeCubby = null;
+    let modalInstance = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        modalInstance = new bootstrap.Modal(document.getElementById('confirmModal'));
+    });
+
+    // Helper: Deterministically generate a realistic student for any cubby ID
+    function getOrCreateStudent(addr) {
+        if (studentDb[addr]) return studentDb[addr];
+
+        // Hash string to pick consistent items per address
+        let hash = 0;
+        for (let i = 0; i < addr.length; i++) {
+            hash = addr.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        hash = Math.abs(hash);
+
+        const fName = firstNames[hash % firstNames.length];
+        const lName = lastNames[(hash + 3) % lastNames.length];
+        const grade = grades[(hash + 1) % grades.length];
+        
+        // ~15% chance of being in Study Hall / Free Period (GREEN state)
+        const isFree = (hash % 7 === 0); 
+        const className = isFree ? "Study Hall" : classes[(hash + 2) % classes.length];
+        const state = isFree ? "GREEN" : "RED";
+
+        studentDb[addr] = {
+            name: `${fName} ${lName}`,
+            grade: grade,
+            class: className,
+            type: isFree ? "Free Period" : "Active Class",
+            state: state,
+            reported: false
+        };
+
+        return studentDb[addr];
+    }
+
+    function showAlert(msg) {
+        document.getElementById('alert-area').innerHTML = `
+            <div class="alert alert-retro alert-dismissible fade show mb-4" role="alert">
+                ${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+
+    function showView(viewName) {
+        document.getElementById('view-cabinets').style.display = viewName === 'cabinets' ? 'block' : 'none';
+        document.getElementById('view-grid').style.display = viewName === 'grid' ? 'block' : 'none';
+        document.getElementById('view-inspect').style.display = viewName === 'inspect' ? 'block' : 'none';
+    }
+
+    function openCabinet(cabId) {
+        activeCabinet = cabId;
+        document.getElementById('grid-title').innerText = `Cabinet ${cabId} (48 Slots)`;
+        renderGrid();
+        showView('grid');
+    }
+
+    function renderGrid() {
+        const container = document.getElementById('grid-container');
+        container.innerHTML = '';
+        for (let i = 1; i <= 48; i++) {
+            const numStr = String(i).padStart(2, '0');
+            const addr = `${activeCabinet}${numStr}`;
+            const student = getOrCreateStudent(addr);
+
+            const btn = document.createElement('div');
+            btn.className = `cubby-btn-retro ${student.reported ? 'flagged' : ''}`;
+            btn.innerText = addr;
+            btn.onclick = () => inspectCubby(addr);
+            container.appendChild(btn);
+        }
+    }
+
+    function inspectCubby(addr) {
+        activeCubby = addr;
+        const student = getOrCreateStudent(addr);
+        const container = document.getElementById('inspect-container');
+        
+        let actionHTML = '';
+        if (student.state === 'GREEN') {
+            actionHTML = `<div class="alert alert-retro text-center mb-0" style="background-color: #d3f9d8;">✅ Phone Permitted — ${student.name} is in an authorized free period.</div>`;
+        } else if (student.reported) {
+            actionHTML = `<div class="alert alert-retro text-center mb-0">⚠️ Infraction already logged for ${student.name} in Period 3.</div>`;
+        } else {
+            actionHTML = `<button type="button" class="btn-retro-danger" onclick="triggerModal('${student.name}')">🚨 Report Tech Infraction</button>`;
+        }
+
+        container.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="logo-product mb-1 d-inline-block">Cubby ${addr}</span>
+                    <h3 class="fw-bold mb-0" style="color: var(--brand-blue);">${student.name}</h3>
+                    <small class="text-muted fw-bold">${student.grade}</small>
+                </div>
+                ${student.state === 'RED' ? '<span class="badge-retro-red">RED (In Box)</span>' : '<span class="badge-retro-green">GREEN (Free)</span>'}
+            </div>
+            <div class="notice-box mb-4">
+                <div class="row">
+                    <div class="col-6 text-start">
+                        <small class="text-muted d-block font-monospace">SCHEDULE</small>
+                        <strong>${student.class}</strong>
+                    </div>
+                    <div class="col-6 text-start">
+                        <small class="text-muted d-block font-monospace">TYPE</small>
+                        <strong>${student.type}</strong>
+                    </div>
+                </div>
+            </div>
+            ${actionHTML}
+        `;
+        showView('inspect');
+    }
+
+    function triggerModal(name) {
+        document.getElementById('modal-body-text').innerHTML = `Are you sure you want to flag <strong>${name}</strong> (Cubby ${activeCubby}) for missing their phone during <strong>Period 3</strong>?`;
+        modalInstance.show();
+    }
+
+    function submitInfraction() {
+        modalInstance.hide();
+        const student = getOrCreateStudent(activeCubby);
+        student.reported = true;
+        showAlert(`Success! Tech infraction reported for ${student.name} (Cubby ${activeCubby}).`);
+        openCabinet(activeCabinet);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Netlify settings for smart-cubby.com. Netlify reads this file on every deploy.
+
+[build]
+  # The website files. Everything in here is served as-is.
+  publish = "public"
+
+[functions]
+  # The small server program that saves and loads flashcard sets.
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
