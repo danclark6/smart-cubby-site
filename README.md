@@ -1,9 +1,30 @@
 # smart-cubby.com
 
-The website for **Smart Cubby** (the "Pigeon" brand).
+The code behind [smart-cubby.com](https://smart-cubby.com): free games and study tools for students. **No ads, no sign-ups, no tracking.**
 
-- **Homepage** (`/`): Smart Cubby for students, with free games and study tools. No ads, no sign ups, no tracking.
-- **Hidden sales pages** (`/schools/`): the original Smart Cubby phone-cabinet pitch for schools, plus the faculty portal demo. Nothing on the site links here, and search engines are told not to list these pages. Anyone with the link can still open them.
+- **Map Spotter**: click places on the map, with three tries each. Every continent and all 50 US states.
+- **Flashcards**: make a set (or paste a list or a Quizlet export), quiz yourself, and share it with classmates using a short code.
+
+## Want to help?
+
+- **Found a bug or have an idea?** Open an issue in the **Issues** tab.
+- **Want to change the code?** Read [CONTRIBUTING.md](CONTRIBUTING.md), then open a pull request.
+- **Found a security problem?** Please report it privately. See [SECURITY.md](SECURITY.md).
+
+GitHub accounts are for ages 13 and up. Younger students can ask a parent or teacher to post their idea.
+
+## License
+
+The code is free to reuse under the [MIT License](LICENSE). The Smart Cubby and Pigeon names, the pigeon mascot, and the `/schools` pages are not part of that license. See [TRADEMARKS.md](TRADEMARKS.md).
+
+---
+
+# Notes for the site owner
+
+The rest of this file explains how the site is run.
+
+- **Homepage** (`/`): Smart Cubby for students, with free games and study tools.
+- **Unlisted sales pages** (`/schools/`): the original Smart Cubby phone-cabinet pitch for schools, plus the faculty portal demo. Nothing on the site links here, and search engines are told not to list these pages. Anyone with the link can still open them.
 
 ## Where everything lives
 
@@ -40,6 +61,8 @@ netlify/
   lib/stats-core.mjs         what gets counted and how the report adds it up
 netlify.toml                 tells Netlify to publish public/ and where the server program is
 package.json                 the one add-on the server program needs (@netlify/blobs)
+LICENSE, TRADEMARKS.md       what others may reuse (the code) and what stays yours (names, mascot, /schools)
+CONTRIBUTING.md, SECURITY.md how people suggest changes or report problems
 ```
 
 ## Adding a new game or tool
@@ -73,3 +96,12 @@ package.json                 the one add-on the server program needs (@netlify/b
 ## Costs and limits
 
 Netlify's free plan gives a monthly allowance of "credits" shared by the whole site. The flashcard and stats servers use very little, but every page visit now also makes one small server call to be counted. If the allowance ever runs out on the free plan, **the whole site goes offline until the next month**. Check usage under **Billing** in Netlify. A paid plan can top up automatically instead.
+
+## Reviewing suggestions (open source)
+
+This repository is public. Anyone can read it, and people with GitHub accounts can open issues and pull requests.
+
+- **Nothing goes live until you merge it.** A pull request is only a proposal.
+- **Deploy previews:** Netlify's *untrusted deploys policy* is set to **Require approval** (Project configuration → Developer settings → Continuous deployment). An outside pull request shows up at the top of the **Deploys** tab waiting for approval. **Don't approve one you haven't reviewed.** A preview runs the suggested code with access to the real flashcard storage.
+- **Before merging,** look for anything that adds ads, sign-ups, outside scripts or trackers, sends data somewhere new, or touches `netlify/` (the server code). When in doubt, ask Claude or another developer to review it.
+- **Security reports** arrive privately under the repository's **Security** tab.
