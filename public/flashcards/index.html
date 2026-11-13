@@ -351,6 +351,20 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
 </main>
 
 <script>
+/* Anonymous usage counts: what was used, never who. No cookies, no IDs. */
+window.scHit = function (d) {
+  try {
+    if (localStorage.getItem("smartcubby.nocount") === "1") return;
+  } catch (e) {}
+  try {
+    var b = JSON.stringify(d);
+    if (navigator.sendBeacon && navigator.sendBeacon("/api/hit", new Blob([b], { type: "application/json" }))) return;
+    fetch("/api/hit", { method: "POST", body: b, keepalive: true, headers: { "content-type": "application/json" } }).catch(function () {});
+  } catch (e) {}
+};
+scHit({ e: "view", p: "flashcards" });
+</script>
+<script>
 (() => {
   const $ = (id) => document.getElementById(id);
   const API = "/api/sets";
@@ -592,7 +606,7 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
     if (!code) { setMsg($("unlockMsg"), "Type your edit code.", "error"); return; }
     // Check the code by saving the set unchanged.
     try {
-      await api("PUT", "/" + current.code, { editCode: code, title: current.title, cards: current.cards });
+      await api("PUT", "/" + current.code, { editCode: code, title: current.title, cards: current.cards, checkOnly: true });
       remember(current.code, current.title, code.toUpperCase());
       startEditExisting(code.toUpperCase());
     } catch (err) { setMsg($("unlockMsg"), err.message, "error"); }
@@ -656,6 +670,7 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
     $("cardPos").textContent = `${deck.length} cards`;
     $("studyActive").hidden = true; $("studyDone").hidden = false;
     $("doneScore").textContent = `${right} / ${deck.length}`;
+    window.scHit && scHit({ e: "fc_round", code: current.code, n: deck.length, r: right });
     const ul = $("missedList"); ul.textContent = "";
     if (!missed.length) {
       $("doneLine").textContent = "You got every card. Nice work!";

@@ -13,6 +13,7 @@ The website for **Smart Cubby** (the "Pigeon" brand).
 | Hosting | **Netlify**, site connected to this GitHub repository. |
 | Website files | This repository, in the `public/` folder. |
 | Saved flashcard sets | **Netlify Blobs**, store named `flashcard-sets`. In Netlify: open the site, then **Blobs**. |
+| Usage counts | **Netlify Blobs**, store named `stats-events`. Read them at `smart-cubby.com/stats/` (password below). |
 
 ## How updates go live
 
@@ -30,10 +31,13 @@ public/                      the website, served as-is
   schools/                   hidden sales pages, PDF overview, cabinet photos
     smart-cubby-demo/        faculty portal demo
   _redirects                 old addresses (like /smart-cubby-demo/) now go to /schools/...
-  _headers                   keeps /schools/ out of search engines
+  stats/                     private usage report (password protected, hidden from search)
+  _headers                   keeps /schools/ and /stats/ out of search engines
 netlify/
   functions/sets.mjs         small server program that saves and loads flashcard sets
+  functions/stats.mjs        records anonymous usage counts and builds the stats report
   lib/sets-core.mjs          the rules for sets: codes, size limits, edit-code checks
+  lib/stats-core.mjs         what gets counted and how the report adds it up
 netlify.toml                 tells Netlify to publish public/ and where the server program is
 package.json                 the one add-on the server program needs (@netlify/blobs)
 ```
@@ -55,6 +59,16 @@ package.json                 the one add-on the server program needs (@netlify/b
 - Sets never expire on their own.
 - **To remove an inappropriate set:** in Netlify, open the site, then **Blobs** → `flashcard-sets`, find the entry named after the share code, and delete it.
 
+## Usage stats
+
+`smart-cubby.com/stats/` shows visits per day and per page, flashcard sets made, opened and studied (with % right), and Map Spotter games per map with average scores. Pick 7 days, 30 days, 90 days or a year.
+
+- **Password:** set in Netlify under **Project configuration → Environment variables**, as `STATS_PASSWORD`. To change it, edit the value there and redeploy (Deploys → Trigger deploy).
+- **What's counted:** only *what* was used: page opened, set made/opened/studied, map game started/finished and its score. No names, emails, IP addresses, cookies or device IDs. So the report shows how much the site is used, not how many different people use it.
+- **Your own visits:** at the bottom of the stats page, tick "Don't count my own visits on this browser."
+- **New games:** to count a new page, add the same small `scHit` script that's at the bottom of `public/index.html`, and add the page name to `PAGES` in `netlify/lib/stats-core.mjs` and in `public/stats/index.html`.
+- Each count is one tiny entry in the `stats-events` store. To start the counts over, delete that store's entries in Netlify's Blobs page.
+
 ## Costs and limits
 
-Netlify's free plan gives a monthly allowance of "credits" shared by the whole site. The flashcard server uses very little. If the allowance ever runs out on the free plan, **the whole site goes offline until the next month**. Check usage under **Billing** in Netlify. A paid plan can top up automatically instead.
+Netlify's free plan gives a monthly allowance of "credits" shared by the whole site. The flashcard and stats servers use very little, but every page visit now also makes one small server call to be counted. If the allowance ever runs out on the free plan, **the whole site goes offline until the next month**. Check usage under **Billing** in Netlify. A paid plan can top up automatically instead.

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Smart Cubby Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: a plain owner's report. Summary tiles, one daily chart, then detail tables. Smart Cubby palette, quieter. */
+:root {
+  --bg: #eef2f7;
+  --panel: #ffffff;
+  --ink: #232a3a;
+  --muted: #5d6679;
+  --faint: #8b93a5;
+  --line: #dde3ec;
+  --grid: #e9edf3;
+  --teal: #1f8a83;
+  --teal-soft: #d7efec;
+  --violet: #7651a8;
+  --bad: #c8463a;
+  --on-accent: #ffffff;
+  --f-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141924; --panel: #1d2432; --ink: #e9edf4; --muted: #a2abbd; --faint: #7a8397; --line: #2e3748; --grid: #252d3c;
+    --teal: #3cc0b6; --teal-soft: #1d3b3c; --violet: #a98ad6; --bad: #f06b5e; --on-accent: #10151f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141924; --panel: #1d2432; --ink: #e9edf4; --muted: #a2abbd; --faint: #7a8397; --line: #2e3748; --grid: #252d3c;
+  --teal: #3cc0b6; --teal-soft: #1d3b3c; --violet: #a98ad6; --bad: #f06b5e; --on-accent: #10151f;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2 { font-family: var(--f-display); margin: 0; line-height: 1.1; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 24px 64px; display: flex; flex-direction: column; gap: 22px; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; }
+.head h1 { font-size: 34px; font-weight: 800; }
+.head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 14px; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.link { border: 0; background: none; color: var(--muted); font-weight: 800; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; }
+.panel h2 { font-size: 21px; font-weight: 800; margin-bottom: 4px; }
+.panel .sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .label { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile .num { font-family: var(--f-display); font-weight: 800; font-size: 40px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.tile .detail { font-size: 14px; color: var(--muted); }
+
+.chart-wrap { position: relative; }
+#chart { width: 100%; height: 240px; display: block; }
+#chart text { fill: var(--faint); font-size: 11px; font-family: var(--f-body); }
+#chart .gridline { stroke: var(--grid); stroke-width: 1; }
+#chart .base { stroke: var(--line); stroke-width: 1; }
+#chart .bar { fill: var(--teal); }
+#chart .bar.dim { opacity: .35; }
+#chart .hit { fill: transparent; cursor: default; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 13px; line-height: 1.35; white-space: nowrap; transform: translate(-50%, calc(-100% - 8px)); z-index: 2; }
+.tip b { font-variant-numeric: tabular-nums; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+#report { width: 100%; min-width: 0; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.code { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-weight: 700; color: var(--violet); white-space: nowrap; }
+.muted { color: var(--muted); }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+.meter { display: inline-block; width: 60px; height: 6px; background: var(--grid); border-radius: 4px; vertical-align: middle; margin-left: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--teal); border-radius: 4px; }
+details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-size: 14px; }
+.notes { font-size: 14px; color: var(--muted); }
+.notes ul { margin: 6px 0 0; padding-left: 18px; }
+
+.gate { max-width: 380px; margin: 12vh auto 0; display: flex; flex-direction: column; gap: 12px; }
+.gate input { width: 100%; background: var(--bg); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.gate input:focus { border-color: var(--teal); outline: none; }
+.btn { border: 0; border-radius: 10px; padding: 10px 18px; font-weight: 800; background: var(--teal); color: var(--on-accent); cursor: pointer; align-self: flex-start; }
+.msg { margin: 0; font-weight: 700; font-size: 14px; min-height: 1.2em; }
+.msg.error { color: var(--bad); }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; font-weight: 700; color: var(--muted); }
+.toggle input { width: 16px; height: 16px; accent-color: var(--teal); }
+
+@media (max-width: 820px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .two { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 420px) { .tile .num { font-size: 32px; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <form class="panel gate" id="gate" autocomplete="on">
+    <h1 style="font-size:28px">Smart Cubby stats</h1>
+    <label for="pw" style="font-weight:800;font-size:14px">Password</label>
+    <input type="password" id="pw" autocomplete="current-password">
+    <button class="btn" type="submit" id="pwBtn">Show stats</button>
+    <p class="msg" id="gateMsg" role="status"></p>
+  </form>
+
+  <div id="report" class="wrap" style="padding:0" hidden>
+    <div class="head">
+      <div>
+        <h1>Smart Cubby stats</h1>
+        <p id="rangeLine">Loading…</p>
+      </div>
+      <div class="controls">
+        <div class="seg" id="rangeSeg" role="group" aria-label="Time range">
+          <button type="button" data-days="7" aria-pressed="false">7 days</button>
+          <button type="button" data-days="30" aria-pressed="true">30 days</button>
+          <button type="button" data-days="90" aria-pressed="false">90 days</button>
+          <button type="button" data-days="365" aria-pressed="false">Year</button>
+        </div>
+        <button class="link" type="button" id="signOut">Sign out</button>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span class="label">Page visits</span><span class="num" id="tVisits">–</span><span class="detail" id="tVisitsD"></span></div>
+      <div class="tile"><span class="label">Sets made</span><span class="num" id="tSets">–</span><span class="detail" id="tSetsD"></span></div>
+      <div class="tile"><span class="label">Study rounds</span><span class="num" id="tRounds">–</span><span class="detail" id="tRoundsD"></span></div>
+      <div class="tile"><span class="label">Map games</span><span class="num" id="tGames">–</span><span class="detail" id="tGamesD"></span></div>
+    </div>
+
+    <section class="panel">
+      <h2>Page visits per day</h2>
+      <p class="sub">All pages together. Hover a bar for the breakdown.</p>
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="chart" role="img" aria-label="Bar chart of page visits per day"></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <details style="margin-top:10px">
+        <summary>Show as a table</summary>
+        <div class="scroll" style="margin-top:8px"><table id="dailyTable"></table></div>
+      </details>
+    </section>
+
+    <div class="two">
+      <section class="panel">
+        <h2>Visits by page</h2>
+        <p class="sub">Each time a page is opened.</p>
+        <div class="scroll"><table id="pagesTable"></table></div>
+      </section>
+      <section class="panel">
+        <h2>Map Spotter by map</h2>
+        <p class="sub">Games started and finished, with the average score of finished games.</p>
+        <div class="scroll"><table id="mapsTable"></table></div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2>Flashcard sets</h2>
+      <p class="sub" id="setsSub">The most-studied sets in this period.</p>
+      <div class="scroll"><table id="setsTable"></table></div>
+    </section>
+
+    <section class="panel notes">
+      <h2 style="color:var(--ink)">About these numbers</h2>
+      <ul>
+        <li>Counts are anonymous. No names, emails, IP addresses, cookies or device IDs are recorded, so the site can't tell how many different people visited, only how many times things were used.</li>
+        <li>"Opened" counts every time a set was loaded, including by the person who made it.</li>
+        <li>Days run midnight to midnight, Eastern time. Counting started when this report was added, so earlier activity isn't included.</li>
+        <li>People who block scripts or whose school filters the site aren't counted.</li>
+      </ul>
+      <p style="margin-top:10px"><label class="toggle"><input type="checkbox" id="noCount"> Don't count my own visits on this browser</label></p>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const REGIONS = { europe: "Europe", asia: "Asia", africa: "Africa", namerica: "North America", samerica: "South America", oceania: "Australia & Oceania", usa: "United States" };
+  const PAGES = [["home", "Homepage"], ["flashcards", "Flashcards"], ["map-spotter", "Map Spotter"]];
+  const nf = new Intl.NumberFormat("en-US");
+  const n = (v) => nf.format(v || 0);
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) : null);
+  let pw = null, days = 30, data = null;
+
+  try { pw = sessionStorage.getItem("sc.stats.pw"); } catch {}
+  try { $("noCount").checked = localStorage.getItem("smartcubby.nocount") === "1"; } catch {}
+  $("noCount").onchange = (e) => { try { e.target.checked ? localStorage.setItem("smartcubby.nocount", "1") : localStorage.removeItem("smartcubby.nocount"); } catch {} };
+
+  async function load() {
+    $("rangeLine").textContent = "Loading…";
+    let res;
+    try { res = await fetch("/api/stats?days=" + days, { headers: { authorization: "Bearer " + pw }, cache: "no-store" }); }
+    catch { return fail("Couldn't reach the site. Check your connection."); }
+    let body = {}; try { body = await res.json(); } catch {}
+    if (!res.ok) return fail(body.error || "Couldn't load the stats.", res.status === 401);
+    try { sessionStorage.setItem("sc.stats.pw", pw); } catch {}
+    data = body; $("gate").hidden = true; $("report").hidden = false; render();
+  }
+  function fail(msg, badPw) {
+    if (badPw) { try { sessionStorage.removeItem("sc.stats.pw"); } catch {} }
+    $("report").hidden = true; $("gate").hidden = false;
+    $("gateMsg").textContent = msg; $("gateMsg").className = "msg error";
+  }
+
+  $("gate").addEventListener("submit", (e) => { e.preventDefault(); pw = $("pw").value; $("gateMsg").textContent = ""; load(); });
+  $("signOut").onclick = () => { try { sessionStorage.removeItem("sc.stats.pw"); } catch {} pw = null; $("pw").value = ""; $("report").hidden = true; $("gate").hidden = false; };
+  $("rangeSeg").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-days]"); if (!b) return;
+    days = +b.dataset.days;
+    [...$("rangeSeg").children].forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    load();
+  });
+
+  const fmtDay = (d, opts) => new Date(d + "T12:00:00").toLocaleDateString("en-US", opts || { month: "short", day: "numeric" });
+
+  function table(el, head, rows, emptyText) {
+    el.textContent = "";
+    if (!rows.length) { const tr = el.insertRow(); const td = tr.insertCell(); td.className = "empty"; td.textContent = emptyText; return; }
+    const thead = el.createTHead().insertRow();
+    head.forEach(([label, num]) => { const th = document.createElement("th"); th.textContent = label; if (num) th.className = "n"; thead.append(th); });
+    const tb = el.createTBody();
+    rows.forEach((cells) => {
+      const tr = tb.insertRow();
+      cells.forEach((c, i) => {
+        const td = tr.insertCell();
+        if (head[i][1]) td.className = "n";
+        if (c instanceof Node) td.append(c); else td.textContent = c;
+      });
+    });
+  }
+  function span(text, cls) { const s = document.createElement("span"); s.className = cls; s.textContent = text; return s; }
+  function scoreCell(p) {
+    const f = document.createDocumentFragment();
+    if (p == null) { f.append("–"); return f; }
+    f.append(p + "%"); const m = span("", "meter"); const i = document.createElement("i"); i.style.width = p + "%"; m.append(i); f.append(m); return f;
+  }
+
+  function render() {
+    const d = data, fc = d.flashcards;
+    $("rangeLine").textContent = `${fmtDay(d.range.from, { month: "short", day: "numeric", year: "numeric" })} – ${fmtDay(d.range.to, { month: "short", day: "numeric", year: "numeric" })} · Eastern time`;
+    const visits = d.views.home + d.views.flashcards + d.views["map-spotter"];
+    $("tVisits").textContent = n(visits);
+    $("tVisitsD").textContent = visits ? `${n(Math.round(visits / d.range.days))} a day on average` : "No visits yet";
+    $("tSets").textContent = n(fc.created);
+    $("tSetsD").textContent = fc.storedSets != null ? `${n(fc.storedSets)} saved in total` : "";
+    $("tRounds").textContent = n(fc.rounds);
+    $("tRoundsD").textContent = fc.cardsStudied ? `${n(fc.cardsStudied)} cards · ${pct(fc.right, fc.cardsStudied)}% right` : "No rounds finished yet";
+    const started = d.regions.reduce((a, r) => a + r.started, 0), finished = d.regions.reduce((a, r) => a + r.finished, 0);
+    $("tGames").textContent = n(started);
+    $("tGamesD").textContent = started ? `${n(finished)} finished (${pct(finished, started)}%)` : "No games yet";
+
+    drawChart(d.daily);
+
+    table($("dailyTable"), [["Day"], ["Homepage", 1], ["Flashcards", 1], ["Map Spotter", 1], ["Total", 1]],
+      d.daily.slice().reverse().map((x) => [fmtDay(x.date, { weekday: "short", month: "short", day: "numeric" }), n(x.home), n(x.flashcards), n(x["map-spotter"]), n(x.home + x.flashcards + x["map-spotter"])]),
+      "No days in range.");
+
+    table($("pagesTable"), [["Page"], ["Visits", 1], ["Share", 1]],
+      PAGES.map(([k, label]) => [label, n(d.views[k]), visits ? pct(d.views[k], visits) + "%" : "–"]).sort((a, b) => 0),
+      "No visits yet.");
+
+    table($("mapsTable"), [["Map"], ["Started", 1], ["Finished", 1], ["Avg score", 1]],
+      d.regions.map((r) => [REGIONS[r.region] || r.region, n(r.started), n(r.finished), scoreCell(r.avgScore)]),
+      "No Map Spotter games yet.");
+
+    $("setsSub").textContent = `Sets opened or studied in this period, busiest first. ${n(fc.opened)} opens, ${n(fc.edited)} edits, ${n(fc.deleted)} deleted.`;
+    table($("setsTable"), [["Set"], ["Code"], ["Cards", 1], ["Opened", 1], ["Rounds", 1], ["Cards studied", 1], ["Right", 1], ["Made", 1]],
+      d.sets.map((s) => [
+        s.deletedSet ? span("(deleted set)", "muted") : (s.title || "–"),
+        span(s.code, "code"),
+        s.cards != null ? n(s.cards) : "–",
+        n(s.opened), n(s.rounds), n(s.cardsStudied),
+        scoreCell(pct(s.right, s.cardsStudied)),
+        s.created ? fmtDay(s.created.slice(0, 10)) : "–",
+      ]),
+      "No flashcard sets used in this period.");
+  }
+
+  // ---- chart: one series, so one hue and no legend ----
+  function drawChart(daily) {
+    const svg = $("chart"), wrap = $("chartWrap"), tip = $("tip");
+    const W = wrap.clientWidth || 600, H = 240, m = { t: 12, r: 8, b: 26, l: 36 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const tot = daily.map((x) => x.home + x.flashcards + x["map-spotter"]);
+    const max = Math.max(4, ...tot);
+    const step = niceStep(max / 4); const top = Math.ceil(max / step) * step;
+    const y = (v) => m.t + ih - (v / top) * ih;
+    const bw = iw / daily.length, gap = Math.min(2, bw * 0.25), barW = Math.max(1, bw - gap);
+    let s = "";
+    for (let v = 0; v <= top; v += step) {
+      s += `<line class="${v === 0 ? "base" : "gridline"}" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/>`;
+      s += `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${n(v)}</text>`;
+    }
+    const every = Math.ceil(daily.length / Math.max(2, Math.floor(iw / 70)));
+    daily.forEach((x, i) => {
+      const v = tot[i], bx = m.l + i * bw + gap / 2, by = y(v), h = m.t + ih - by;
+      if (v > 0) {
+        const r = Math.min(4, barW / 2, h);
+        s += `<path class="bar" data-i="${i}" d="M${bx},${m.t + ih}V${by + r}Q${bx},${by} ${bx + r},${by}H${bx + barW - r}Q${bx + barW},${by} ${bx + barW},${by + r}V${m.t + ih}Z"/>`;
+      }
+      s += `<rect class="hit" data-i="${i}" x="${m.l + i * bw}" y="${m.t}" width="${bw}" height="${ih}"/>`;
+      if (i % every === 0) s += `<text x="${bx + barW / 2}" y="${H - 8}" text-anchor="middle">${fmtDay(x.date)}</text>`;
+    });
+    svg.innerHTML = s;
+    const show = (i) => {
+      const x = daily[i];
+      svg.querySelectorAll(".bar").forEach((b) => b.classList.toggle("dim", +b.dataset.i !== i));
+      tip.innerHTML = "";
+      const head = document.createElement("div"); head.innerHTML = `<b>${n(tot[i])}</b> visits · ${fmtDay(x.date, { weekday: "short", month: "short", day: "numeric" })}`;
+      const body = document.createElement("div"); body.textContent = `Home ${n(x.home)} · Flashcards ${n(x.flashcards)} · Map ${n(x["map-spotter"])}`;
+      tip.append(head, body);
+      const px = ((m.l + i * bw + bw / 2) / W) * wrap.clientWidth;
+      tip.style.left = Math.min(Math.max(px, 110), wrap.clientWidth - 110) + "px";
+      tip.style.top = ((y(tot[i]) / H) * svg.clientHeight) + "px";
+      tip.hidden = false;
+    };
+    const hide = () => { tip.hidden = true; svg.querySelectorAll(".bar").forEach((b) => b.classList.remove("dim")); };
+    svg.querySelectorAll(".hit").forEach((r) => {
+      r.addEventListener("mouseenter", () => show(+r.dataset.i));
+      r.addEventListener("click", () => show(+r.dataset.i));
+    });
+    svg.addEventListener("mouseleave", hide);
+  }
+  function niceStep(raw) {
+    const p = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+    const f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  }
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => data && drawChart(data.daily), 150); });
+
+  if (pw) load();
+})();
+</script>
+</body>
+</html>

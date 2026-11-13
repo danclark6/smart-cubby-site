@@ -160,6 +160,20 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 }
 </style>
 
+<script>
+/* Anonymous usage counts: what was used, never who. No cookies, no IDs. */
+window.scHit = function (d) {
+  try {
+    if (localStorage.getItem("smartcubby.nocount") === "1") return;
+  } catch (e) {}
+  try {
+    var b = JSON.stringify(d);
+    if (navigator.sendBeacon && navigator.sendBeacon("/api/hit", new Blob([b], { type: "application/json" }))) return;
+    fetch("/api/hit", { method: "POST", body: b, keepalive: true, headers: { "content-type": "application/json" } }).catch(function () {});
+  } catch (e) {}
+};
+scHit({ e: "view", p: "map-spotter" });
+</script>
 <main id="home">
   <a href="/" style="align-self:flex-start;color:var(--muted);font-weight:800;font-size:14px;text-decoration:none">&larr; Smart Cubby</a>
   <div class="brand">
@@ -278,6 +292,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
     $("results").hidden = true;
     buildMap(r);
     nextQuestion(true);
+    window.scHit && scHit({ e: "ms_start", region: key });
   }
 
   // ---------- map ----------
@@ -522,6 +537,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
     for (const v of Object.values(G.results)) counts[v]++;
     const needPractice = G.queue.filter((id) => G.results[id] > 1);
     const missed = G.queue.filter((id) => G.results[id] === 4).map(nameOf).sort();
+    window.scHit && scHit({ e: "ms_finish", region: G.key, score: score, n: G.queue.length });
 
     let newBest = false;
     if (!G.practice && howMany === 0) {

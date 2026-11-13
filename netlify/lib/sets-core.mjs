@@ -78,7 +78,8 @@ async function readBody(req) {
 //   GET    /api/sets/:code                              -> set
 //   PUT    /api/sets/:code    {editCode, title, cards}  -> set
 //   DELETE /api/sets/:code    {editCode}                -> {deleted:true}
-export async function handle(req, store) {
+export async function handle(req, store, onEvent = async () => {}) {
+  const note = (type, code) => onEvent(type, code).catch(() => {});
   const url = new URL(req.url);
   const parts = url.pathname.replace(/\/+$/, "").split("/").filter(Boolean); // ["api","sets",code?]
   if (parts[0] !== "api" || parts[1] !== "sets" || parts.length > 3) return json(404, { error: "Not found." });
@@ -102,6 +103,7 @@ export async function handle(req, store) {
     const now = new Date().toISOString();
     const rec = { title: set.title, cards: set.cards, editHash: hashEditCode(editCode), created: now, updated: now };
     await store.setJSON(code, rec);
+    await note("fc_create", code);
     return json(201, { ...publicView(code, rec), editCode });
   }
 
@@ -110,7 +112,7 @@ export async function handle(req, store) {
   const rec = await store.get(code, { type: "json" });
   if (!rec) return json(404, { error: "No set has that code. Check it and try again." });
 
-  if (req.method === "GET") return json(200, publicView(code, rec));
+  if (req.method === "GET") { await note("fc_open", code); return json(200, publicView(code, rec)); }
 
   if (req.method === "PUT" || req.method === "DELETE") {
     const body = await readBody(req);
@@ -121,12 +123,14 @@ export async function handle(req, store) {
     }
     if (req.method === "DELETE") {
       await store.delete(code);
+      await note("fc_delete", code);
       return json(200, { deleted: true, code });
     }
     const set = cleanSet(data);
     if (set.error) return json(400, { error: set.error });
     const next = { ...rec, title: set.title, cards: set.cards, updated: new Date().toISOString() };
     await store.setJSON(code, next);
+    if (!data.checkOnly) await note("fc_edit", code);
     return json(200, publicView(code, next));
   }
 

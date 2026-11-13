@@ -1,3 +1,5 @@
-# Keep the schools pages out of search engines
+# Keep the schools pages and the stats report out of search engines
 /schools/*
+  X-Robots-Tag: noindex, nofollow
+/stats/*
   X-Robots-Tag: noindex, nofollow

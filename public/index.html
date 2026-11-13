@@ -232,5 +232,19 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
 
   <footer>© Pigeon. Made for students.</footer>
 </main>
+<script>
+/* Anonymous usage counts: what was used, never who. No cookies, no IDs. */
+window.scHit = function (d) {
+  try {
+    if (localStorage.getItem("smartcubby.nocount") === "1") return;
+  } catch (e) {}
+  try {
+    var b = JSON.stringify(d);
+    if (navigator.sendBeacon && navigator.sendBeacon("/api/hit", new Blob([b], { type: "application/json" }))) return;
+    fetch("/api/hit", { method: "POST", body: b, keepalive: true, headers: { "content-type": "application/json" } }).catch(function () {});
+  } catch (e) {}
+};
+scHit({ e: "view", p: "home" });
+</script>
 </body>
 </html>
