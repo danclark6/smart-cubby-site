@@ -56,6 +56,7 @@ package.json                 the one add-on the server program needs (@netlify/b
 - Codes use only consonants and the digits 2-9, so they can't spell words and you can't mix up 0/O or 1/I/L.
 - Only the set name and the cards are saved. No names, emails or other personal details. The edit code is stored scrambled (hashed), so even we can't read it back.
 - Limits: up to 200 cards per set, 300 characters per side, 80 characters per set name.
+- **Paste a list:** in the editor, students can paste a word list, a Quizlet export, or a table copied from Google Docs, Word or a PDF, or open a .txt/.csv file. `public/flashcards/parse-list.js` splits each line at a tab, dash, equals sign, colon or comma. This happens entirely in the student's browser; nothing extra is sent anywhere.
 - Sets never expire on their own.
 - **To remove an inappropriate set:** in Netlify, open the site, then **Blobs** → `flashcard-sets`, find the entry named after the share code, and delete it.
 

@@ -168,6 +168,29 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
 .missed-list { margin: 0; padding-left: 20px; color: var(--muted); }
 .missed-list b { color: var(--ink); }
 
+.importbox { display: flex; flex-direction: column; gap: 12px; }
+.import-panel { box-shadow: 6px 6px 0 var(--feather-light); }
+.import-panel h3 { font-size: 24px; font-weight: 800; }
+.import-panel textarea { min-height: 150px; resize: vertical; font-size: 15px; }
+.howto { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--sky); }
+.howto summary { cursor: pointer; font-weight: 800; font-size: 15px; }
+.howto ol, .howto p { margin: 8px 0 2px; padding-left: 20px; color: var(--muted); font-size: 15px; }
+.howto p { padding-left: 0; }
+.import-opts { display: flex; gap: 10px 20px; flex-wrap: wrap; align-items: center; font-size: 15px; font-weight: 700; color: var(--muted); }
+.import-opts label { font-size: 15px; display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+.import-opts input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--teal); }
+.filepick { cursor: pointer; border: 2px dashed var(--feather); border-radius: 10px; padding: 6px 12px; color: var(--ink); }
+.filepick:focus-within { outline: 3px solid var(--teal); outline-offset: 2px; }
+.filepick input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.preview { display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+.preview .sum { font-weight: 800; }
+.preview .sum.none { color: var(--muted); font-weight: 700; }
+.preview-table { width: 100%; border-collapse: collapse; }
+.preview-table td { border-top: 1px solid var(--line); padding: 5px 8px; vertical-align: top; overflow-wrap: anywhere; }
+.preview-table td:first-child { font-weight: 800; width: 45%; }
+.preview .more { color: var(--muted); }
+.preview .skipped { color: var(--bad); }
+.preview .skipped ul { margin: 4px 0 0; padding-left: 20px; color: var(--muted); }
 @media (max-width: 560px) {
   .ecard { grid-template-columns: 1fr 34px; }
   .ecard .num { grid-column: 1; text-align: left; padding: 0; }
@@ -212,7 +235,7 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
       </form>
       <div class="panel">
         <h2>Make a new set</h2>
-        <p>Type a word or question on the front and the answer on the back. French vocab, state capitals, science terms, anything.</p>
+        <p>Type a word or question on the front and the answer on the back, or paste in a word list or a Quizlet export. French vocab, state capitals, science terms, anything.</p>
         <div class="row"><button class="btn primary" id="newBtn" type="button">Start a new set</button></div>
       </div>
     </div>
@@ -234,6 +257,43 @@ input[type="text"]:focus, textarea:focus { border-color: var(--teal); outline: n
       <div class="field">
         <label for="setTitle">Set name</label>
         <input type="text" id="setTitle" maxlength="80" placeholder="French: Chapter 3 food words">
+      </div>
+      <div class="importbox">
+        <div class="row">
+          <button class="btn" type="button" id="importToggle" aria-expanded="false" aria-controls="importPanel">Paste a list</button>
+          <span class="note">Got a word list, a Quizlet set or a PDF? Paste it in and we'll make the cards.</span>
+        </div>
+        <div class="panel import-panel" id="importPanel" hidden>
+          <h3>Paste a list</h3>
+          <p>Put each card on its own line, with the word and its answer split by a tab, a dash ( - ), an equals sign ( = ), a colon ( : ) or a comma. Numbers and bullets at the start of lines are fine.</p>
+          <details class="howto">
+            <summary>From Quizlet</summary>
+            <ol>
+              <li>Open your set on the Quizlet website.</li>
+              <li>Click the <b>⋯</b> (more) button and choose <b>Export</b>.</li>
+              <li>Leave it on <b>Tab</b> between term and definition and <b>New line</b> between rows.</li>
+              <li>Click <b>Copy text</b>, then paste it in the box below.</li>
+            </ol>
+          </details>
+          <details class="howto">
+            <summary>From a PDF, Google Doc or Word file</summary>
+            <p>Select the list, copy it (Ctrl+C, or ⌘+C on a Mac) and paste it in the box below. Tables copy well. If each word and its answer end up on separate lines, tick <b>Words and answers are on separate lines</b>. Check your cards afterward, because PDFs sometimes mix up the order.</p>
+          </details>
+          <div class="field">
+            <label for="importText">Your list</label>
+            <textarea id="importText" spellcheck="false" placeholder="le pain - bread&#10;la pomme - apple&#10;le fromage - cheese"></textarea>
+          </div>
+          <div class="import-opts">
+            <label class="filepick"><input type="file" id="importFile" accept=".txt,.csv,.tsv,text/plain,text/csv,text/tab-separated-values">Open a .txt or .csv file</label>
+            <label><input type="checkbox" id="importAlt"> Words and answers are on separate lines</label>
+            <label><input type="checkbox" id="importSwap"> Swap front and back</label>
+          </div>
+          <div class="preview" id="importPreview" aria-live="polite"></div>
+          <div class="row">
+            <button class="btn primary" type="button" id="importAdd" disabled>Add cards</button>
+            <button class="btn quiet" type="button" id="importClose">Close</button>
+          </div>
+        </div>
       </div>
       <div class="editor-cards" id="editorCards"></div>
       <div class="row">
@@ -364,6 +424,7 @@ window.scHit = function (d) {
 };
 scHit({ e: "view", p: "flashcards" });
 </script>
+<script src="parse-list.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -496,6 +557,7 @@ scHit({ e: "view", p: "flashcards" });
       .forEach((c) => addCardRow(c.front, c.back));
     setMsg($("editMsg"), "");
     $("deleteConfirm").hidden = true;
+    $("importText").value = ""; $("importPreview").textContent = ""; $("importAdd").disabled = true; setImportOpen(false);
   }
 
   function startNew() {
@@ -526,6 +588,88 @@ scHit({ e: "view", p: "flashcards" });
 
   $("newBtn").onclick = startNew;
   $("addCardBtn").onclick = () => addCardRow("", "", true);
+
+  // ---- paste a list ----
+  const MAX_CARDS = 200;
+  let parsed = null;
+  function setImportOpen(open) {
+    $("importPanel").hidden = !open;
+    $("importToggle").setAttribute("aria-expanded", String(open));
+    if (open) $("importText").focus();
+  }
+  function existingCards() {
+    return [...$("editorCards").children].filter((r) => r.querySelector(".fr").value.trim() || r.querySelector(".bk").value.trim()).length;
+  }
+  function renderPreview() {
+    const box = $("importPreview"); box.textContent = "";
+    const text = $("importText").value;
+    parsed = text.trim() ? window.parseList(text, { alternate: $("importAlt").checked, swap: $("importSwap").checked }) : null;
+    const add = $("importAdd");
+    if (!parsed) { add.disabled = true; add.textContent = "Add cards"; return; }
+    const room = MAX_CARDS - existingCards();
+    const count = Math.min(parsed.cards.length, Math.max(0, room));
+    const sum = document.createElement("div"); sum.className = "sum";
+    if (!parsed.cards.length) {
+      sum.className = "sum none";
+      sum.textContent = parsed.looksAlternate
+        ? "Couldn't find where each word ends and its answer starts. If they're on separate lines, tick “Words and answers are on separate lines.”"
+        : "Couldn't find where each word ends and its answer starts. Put a dash, tab, equals sign, colon or comma between them.";
+      box.append(sum);
+    } else {
+      sum.textContent = `Found ${parsed.cards.length} card${parsed.cards.length === 1 ? "" : "s"}` + (parsed.sepLabel ? `, split at ${parsed.sepLabel}.` : ".");
+      box.append(sum);
+      const t = document.createElement("table"); t.className = "preview-table";
+      parsed.cards.slice(0, 5).forEach((c) => {
+        const tr = t.insertRow(); tr.insertCell().textContent = c.front; tr.insertCell().textContent = c.back;
+      });
+      box.append(t);
+      if (parsed.cards.length > 5) { const m = document.createElement("div"); m.className = "more"; m.textContent = `…and ${parsed.cards.length - 5} more.`; box.append(m); }
+      const notes = [];
+      if (parsed.headerSkipped) notes.push("The first line looked like column titles, so it was left out.");
+      if (parsed.truncated) notes.push(`${parsed.truncated} card${parsed.truncated === 1 ? " was" : "s were"} longer than 300 characters and got cut short.`);
+      if (parsed.cards.length > room) notes.push(room > 0 ? `A set can have up to ${MAX_CARDS} cards, so only the first ${room} will be added.` : `This set already has ${MAX_CARDS} cards, the most a set can have.`);
+      notes.forEach((n) => { const d = document.createElement("div"); d.className = "more"; d.textContent = n; box.append(d); });
+    }
+    if (parsed.skipped.length) {
+      const sk = document.createElement("div"); sk.className = "skipped";
+      sk.textContent = parsed.skipped.length === 1 ? "This line couldn't be split and will be left out:" : `These ${parsed.skipped.length} lines couldn't be split and will be left out:`;
+      const ul = document.createElement("ul");
+      parsed.skipped.slice(0, 6).forEach((l) => { const li = document.createElement("li"); li.textContent = l; ul.append(li); });
+      if (parsed.skipped.length > 6) { const li = document.createElement("li"); li.textContent = `…and ${parsed.skipped.length - 6} more`; ul.append(li); }
+      sk.append(ul); box.append(sk);
+    }
+    add.disabled = count === 0;
+    add.textContent = count ? `Add ${count} card${count === 1 ? "" : "s"}` : "Add cards";
+  }
+  $("importToggle").onclick = () => setImportOpen($("importPanel").hidden);
+  $("importClose").onclick = () => setImportOpen(false);
+  ["input", "change"].forEach((ev) => $("importText").addEventListener(ev, renderPreview));
+  $("importAlt").onchange = renderPreview;
+  $("importSwap").onchange = renderPreview;
+  $("importFile").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    const box = $("importPreview");
+    if (!/\.(txt|csv|tsv)$/i.test(f.name) && !/^text\//.test(f.type)) {
+      box.textContent = "That kind of file can't be read here. Open it, copy the list, and paste it in the box.";
+      return;
+    }
+    if (f.size > 300000) { box.textContent = "That file is too big. A set can have up to 200 cards."; return; }
+    try { $("importText").value = await f.text(); renderPreview(); }
+    catch { box.textContent = "Couldn't open that file. Try copying the list and pasting it in the box."; }
+  });
+  $("importAdd").onclick = () => {
+    if (!parsed || !parsed.cards.length) return;
+    [...$("editorCards").children].forEach((r) => { if (!r.querySelector(".fr").value.trim() && !r.querySelector(".bk").value.trim()) r.remove(); });
+    const room = MAX_CARDS - existingCards();
+    const adding = parsed.cards.slice(0, Math.max(0, room));
+    adding.forEach((c) => addCardRow(c.front, c.back));
+    if (!$("editorCards").children.length) addCardRow();
+    $("importText").value = ""; $("importAlt").checked = false; $("importSwap").checked = false; renderPreview();
+    setImportOpen(false);
+    setMsg($("editMsg"), `Added ${adding.length} card${adding.length === 1 ? "" : "s"}. Check them, then save.`, "ok");
+    $("editorCards").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   $("cancelEditBtn").onclick = () => { if (editing && current) show("study"); else show("home"); };
 
   $("editForm").addEventListener("submit", async (e) => {
