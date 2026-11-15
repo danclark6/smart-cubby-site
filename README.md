@@ -2,7 +2,7 @@
 
 The code behind [smart-cubby.com](https://smart-cubby.com): free games and study tools for students. **No ads, no sign-ups, no tracking.**
 
-- **Map Spotter**: click places on the map, with three tries each. Every continent and all 50 US states.
+- **Map Spotter**: click places on the map, with three tries each. Every continent, all 50 US states, and Manhattan neighborhoods.
 - **Flashcards**: make a set (or paste a list or a Quizlet export), quiz yourself, and share it with classmates using a short code.
 
 ## Want to help?
