@@ -1,0 +1,8 @@
+# Local Netlify folder
+.netlify
+
+# Packages installed by npm install
+node_modules/
+
+# Local Claude Code setup (preview server config)
+.claude/

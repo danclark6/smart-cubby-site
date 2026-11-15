@@ -2,7 +2,7 @@
 
 The code behind [smart-cubby.com](https://smart-cubby.com): free games and study tools for students. **No ads, no sign-ups, no tracking.**
 
-- **Map Spotter**: click places on the map, with three tries each. Every continent and all 50 US states.
+- **Map Spotter**: click places on the map, with three tries each. Every continent, all 50 US states, and Manhattan neighborhoods.
 - **Flashcards**: make a set (or paste a list or a Quizlet export), quiz yourself, and share it with classmates using a short code.
 
 ## Want to help?
@@ -47,7 +47,9 @@ You can edit or upload files right on github.com: open a folder, then **Add file
 ```
 public/                      the website, served as-is
   index.html                 homepage (mascot, tagline, list of games and tools)
-  map-spotter/               Map Spotter geography game (one self-contained file)
+  map-spotter/               Map Spotter geography game
+    index.html               the game, plus the menu of maps (names and outlines)
+    maps/                    one file per map (usa.json, manhattan.json...), loaded when a map is picked
   flashcards/                Flashcards: make, share and study card sets
   schools/                   hidden sales pages, PDF overview, cabinet photos
     smart-cubby-demo/        faculty portal demo
@@ -70,6 +72,12 @@ CONTRIBUTING.md, SECURITY.md how people suggest changes or report problems
 1. Add a folder under `public/` (for example `public/word-search/index.html`). It becomes `smart-cubby.com/word-search/`.
 2. Add a card for it on the homepage: copy one of the `<a class="game">` blocks in `public/index.html` and change the link, title, tags and description.
 3. Link back to the homepage with `<a href="/">← Smart Cubby</a>` at the top of the new page.
+
+## Adding a map to Map Spotter
+
+1. Add the map's file to `public/map-spotter/maps/`, for example `maps/brooklyn.json`. It holds the map's size, the places students click (`game`: an id, a name and an outline for each) and the grey background shapes (`context`).
+2. In `public/map-spotter/index.html`, add a line for it to the menu list (the `mapmenu` block: name, how many places, size and a small outline), and add its name to `ORDER`.
+3. To see it in the stats report, add it to `REGIONS` in `public/stats/index.html`.
 
 ## How Flashcards works
 

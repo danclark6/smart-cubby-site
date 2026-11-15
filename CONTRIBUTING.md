@@ -28,7 +28,7 @@ Also:
 
 ## How the code is organized
 
-- `public/` is the website. Each game or tool has its own folder (for example `public/map-spotter/index.html`). These are plain HTML, CSS and JavaScript, and you can open most of them straight from your computer.
+- `public/` is the website. Each game or tool has its own folder (for example `public/map-spotter/index.html`). These are plain HTML, CSS and JavaScript, and you can open most of them straight from your computer. Map Spotter is the exception: each map is its own file in `public/map-spotter/maps/`, and browsers only load those files from a running server, so use `netlify dev` (below) for it.
 - `netlify/functions/` holds two small server programs: one saves and loads flashcard sets, the other counts anonymous usage. `netlify/lib/` has their logic.
 - To run everything locally, including saving flashcards, install the [Netlify CLI](https://docs.netlify.com/cli/get-started/) and run `npm install` and then `netlify dev` in this folder.
 
