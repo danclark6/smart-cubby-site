@@ -2,7 +2,7 @@
 
 The code behind [smart-cubby.com](https://smart-cubby.com): free games and study tools for students. **No ads, no sign-ups, no tracking.**
 
-- **Map Spotter**: click places on the map, with three tries each. Every continent, all 50 US states, and Manhattan neighborhoods.
+- **Map Spotter**: click places on the map, with three tries each. Every continent, all 50 US states, and Manhattan neighborhoods and landmarks.
 - **Flashcards**: make a set (or paste a list or a Quizlet export), quiz yourself, and share it with classmates using a short code.
 
 ## Want to help?
@@ -49,11 +49,12 @@ public/                      the website, served as-is
   index.html                 homepage (mascot, tagline, list of games and tools)
   map-spotter/               Map Spotter geography game
     index.html               the game, plus the menu of maps (names and outlines)
+    map-logic.js             the game's rules: map addresses, modes, scoring
     maps/                    one file per map (usa.json, manhattan.json...), loaded when a map is picked
   flashcards/                Flashcards: make, share and study card sets
   schools/                   hidden sales pages, PDF overview, cabinet photos
     smart-cubby-demo/        faculty portal demo
-  _redirects                 old addresses (like /smart-cubby-demo/) now go to /schools/...
+  _redirects                 old addresses (like /smart-cubby-demo/) now go to /schools/..., and map addresses go to Map Spotter
   stats/                     private usage report (password protected, hidden from search)
   _headers                   keeps /schools/ and /stats/ out of search engines
 netlify/
@@ -61,8 +62,10 @@ netlify/
   functions/stats.mjs        records anonymous usage counts and builds the stats report
   lib/sets-core.mjs          the rules for sets: codes, size limits, edit-code checks
   lib/stats-core.mjs         what gets counted and how the report adds it up
+tests/                       automatic checks, run with `npm test` (Map Spotter rules and every map file)
+.github/workflows/test.yml   runs `npm test` on every pull request and change to main
 netlify.toml                 tells Netlify to publish public/ and where the server program is
-package.json                 the one add-on the server program needs (@netlify/blobs)
+package.json                 the one add-on the server program needs (@netlify/blobs), and `npm test`
 LICENSE, TRADEMARKS.md       what others may reuse (the code) and what stays yours (names, mascot, /schools)
 CONTRIBUTING.md, SECURITY.md how people suggest changes or report problems
 ```
@@ -75,9 +78,12 @@ CONTRIBUTING.md, SECURITY.md how people suggest changes or report problems
 
 ## Adding a map to Map Spotter
 
-1. Add the map's file to `public/map-spotter/maps/`, for example `maps/brooklyn.json`. It holds the map's size, the places students click (`game`: an id, a name and an outline for each) and the grey background shapes (`context`).
+1. Add the map's file to `public/map-spotter/maps/`, for example `maps/brooklyn.json`. It holds the map's size, the places students click (`game`: an id, a name and an outline for each, or `"dot": true` with a `cx`/`cy` point for a place shown as a dot) and the grey background shapes (`context`). A map can also use another map as its background with `"base"`: Manhattan Landmarks has only its landmarks and `"base": "manhattan"`, so the neighborhoods are drawn as plain land under the dots without being copied.
 2. In `public/map-spotter/index.html`, add a line for it to the menu list (the `mapmenu` block: name, how many places, size and a small outline), and add its name to `ORDER`.
 3. To see it in the stats report, add it to `REGIONS` in `public/stats/index.html`.
+4. Run `npm test`. It checks that the file matches the menu (name, count, size), that ids and names aren't repeated, and that the map has a card and a stats line.
+
+Each map has its own address, like `smart-cubby.com/map-spotter/europe` (`public/_redirects` sends these to the game page). A map can have a second mode instead of its own card: give its menu line `"parent"` (the main map) and `"mode"` (the button name), like Manhattan Landmarks at `/map-spotter/manhattan/landmarks`.
 
 ## How Flashcards works
 

@@ -3,3 +3,6 @@
 /smart-cubby-demo/*          /schools/smart-cubby-demo/:splat  301
 /smart-cubby-overview.pdf    /schools/smart-cubby-overview.pdf 301
 /cabinet.jpg                 /schools/cabinet.jpg              301
+
+# Map Spotter: each map has its own address (/map-spotter/manhattan); the game page reads it
+/map-spotter/*               /map-spotter/index.html           200

@@ -1,0 +1,23 @@
+# Runs the automatic checks (npm test) on every pull request and on every change to main.
+# The result shows as a check on the pull request.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The tests use only Node's built-in tools, so there is nothing to install.
+      - run: npm test
