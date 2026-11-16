@@ -150,6 +150,11 @@ test("Manhattan uses the corrected neighborhood names", () => {
     "East Harlem",
     "Central Harlem",
     "Upper West Side-Lincoln Center",
+    "SoHo-Little Italy",
+    "Midtown East-Turtle Bay",
+    "Flatiron-Union Square",
+    "Washington Heights",
+    "Chinatown",
   ]) assert.ok(hoods.includes(name), name);
 });
 
@@ -164,6 +169,12 @@ test("Manhattan no longer has the old names", () => {
     "Harlem (North)",
     "Harlem (South)",
     "Upper West Side-Lincoln Square",
+    "SoHo-Little Italy-Hudson Square",
+    "East Midtown-Turtle Bay",
+    "Midtown South-Flatiron-Union Square",
+    "Washington Heights (North)",
+    "Washington Heights (South)",
+    "Chinatown-Two Bridges",
   ]) assert.ok(!hoods.includes(name), name);
 });
 
@@ -193,15 +204,15 @@ test("each landmark sits in the right neighborhood", () => {
   const expected = {
     "American Museum of Natural History": "Upper West Side (Central)",
     "Apollo Theater": "Central Harlem",
-    "Empire State Building": "Midtown South-Flatiron-Union Square",
+    "Empire State Building": "Flatiron-Union Square",
     "Ethical Culture": "Upper West Side-Lincoln Center",
-    "Flatiron Building": "Midtown South-Flatiron-Union Square",
-    "Grand Central Terminal": "East Midtown-Turtle Bay",
+    "Flatiron Building": "Flatiron-Union Square",
+    "Grand Central Terminal": "Midtown East-Turtle Bay",
     "Lincoln Center": "Upper West Side-Lincoln Center",
     "MoMA": "Midtown-Times Square",
-    "The Cloisters": "Washington Heights (North)",
+    "The Cloisters": "Washington Heights",
     "The Met": "Central Park",
-    "United Nations": "East Midtown-Turtle Bay",
+    "United Nations": "Midtown East-Turtle Bay",
     "World Trade Center": "Financial District-Wall Street-Battery Park City",
   };
   for (const lm of readMap("manhattan-landmarks").game) {
