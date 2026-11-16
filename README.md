@@ -63,6 +63,7 @@ netlify/
   lib/sets-core.mjs          the rules for sets: codes, size limits, edit-code checks
   lib/stats-core.mjs         what gets counted and how the report adds it up
 tests/                       automatic checks, run with `npm test` (Map Spotter rules and every map file)
+.github/workflows/test.yml   runs `npm test` on every pull request and change to main
 netlify.toml                 tells Netlify to publish public/ and where the server program is
 package.json                 the one add-on the server program needs (@netlify/blobs), and `npm test`
 LICENSE, TRADEMARKS.md       what others may reuse (the code) and what stays yours (names, mascot, /schools)
