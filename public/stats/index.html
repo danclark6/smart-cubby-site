@@ -169,6 +169,12 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
     </div>
 
     <section class="panel">
+      <h2>Name Hat</h2>
+      <p class="sub">Hats drawn and private links opened. Names are never counted.</p>
+      <div class="scroll"><table id="hatTable"></table></div>
+    </section>
+
+    <section class="panel">
       <h2>Flashcard sets</h2>
       <p class="sub" id="setsSub">The most-studied sets in this period.</p>
       <div class="scroll"><table id="setsTable"></table></div>
@@ -191,7 +197,8 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
 (() => {
   const $ = (id) => document.getElementById(id);
   const REGIONS = { europe: "Europe", asia: "Asia", africa: "Africa", namerica: "North America", samerica: "South America", oceania: "Australia & Oceania", usa: "United States", manhattan: "Manhattan", "manhattan-landmarks": "Manhattan Landmarks" };
-  const PAGES = [["home", "Homepage"], ["flashcards", "Flashcards"], ["map-spotter", "Map Spotter"]];
+  const PAGES = [["home", "Homepage"], ["flashcards", "Flashcards"], ["map-spotter", "Map Spotter"], ["name-hat", "Name Hat"]];
+  const dayTotal = (x) => PAGES.reduce((a, [k]) => a + (x[k] || 0), 0);
   const nf = new Intl.NumberFormat("en-US");
   const n = (v) => nf.format(v || 0);
   const pct = (a, b) => (b ? Math.round((a / b) * 100) : null);
@@ -253,7 +260,7 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
   function render() {
     const d = data, fc = d.flashcards;
     $("rangeLine").textContent = `${fmtDay(d.range.from, { month: "short", day: "numeric", year: "numeric" })} – ${fmtDay(d.range.to, { month: "short", day: "numeric", year: "numeric" })} · Eastern time`;
-    const visits = d.views.home + d.views.flashcards + d.views["map-spotter"];
+    const visits = dayTotal(d.views);
     $("tVisits").textContent = n(visits);
     $("tVisitsD").textContent = visits ? `${n(Math.round(visits / d.range.days))} a day on average` : "No visits yet";
     $("tSets").textContent = n(fc.created);
@@ -266,8 +273,8 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
 
     drawChart(d.daily);
 
-    table($("dailyTable"), [["Day"], ["Homepage", 1], ["Flashcards", 1], ["Map Spotter", 1], ["Total", 1]],
-      d.daily.slice().reverse().map((x) => [fmtDay(x.date, { weekday: "short", month: "short", day: "numeric" }), n(x.home), n(x.flashcards), n(x["map-spotter"]), n(x.home + x.flashcards + x["map-spotter"])]),
+    table($("dailyTable"), [["Day"], ["Homepage", 1], ["Flashcards", 1], ["Map Spotter", 1], ["Name Hat", 1], ["Total", 1]],
+      d.daily.slice().reverse().map((x) => [fmtDay(x.date, { weekday: "short", month: "short", day: "numeric" }), n(x.home), n(x.flashcards), n(x["map-spotter"]), n(x["name-hat"]), n(dayTotal(x))]),
       "No days in range.");
 
     table($("pagesTable"), [["Page"], ["Visits", 1], ["Share", 1]],
@@ -277,6 +284,11 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
     table($("mapsTable"), [["Map"], ["Started", 1], ["Finished", 1], ["Avg score", 1]],
       d.regions.map((r) => [REGIONS[r.region] || r.region, n(r.started), n(r.finished), scoreCell(r.avgScore)]),
       "No Map Spotter games yet.");
+
+    const nh = d.nameHat || { draws: 0, people: 0, reveals: 0 };
+    table($("hatTable"), [["Hats drawn", 1], ["People in them", 1], ["Average size", 1], ["Links opened", 1]],
+      nh.draws || nh.reveals ? [[n(nh.draws), n(nh.people), nh.draws ? n(Math.round(nh.people / nh.draws)) : "–", n(nh.reveals)]] : [],
+      "No hats drawn yet.");
 
     $("setsSub").textContent = `Sets opened or studied in this period, busiest first. ${n(fc.opened)} opens, ${n(fc.edited)} edits, ${n(fc.deleted)} deleted.`;
     table($("setsTable"), [["Set"], ["Code"], ["Cards", 1], ["Opened", 1], ["Rounds", 1], ["Cards studied", 1], ["Right", 1], ["Made", 1]],
@@ -297,7 +309,7 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
     const W = wrap.clientWidth || 600, H = 240, m = { t: 12, r: 8, b: 26, l: 36 };
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const tot = daily.map((x) => x.home + x.flashcards + x["map-spotter"]);
+    const tot = daily.map(dayTotal);
     const max = Math.max(4, ...tot);
     const step = niceStep(max / 4); const top = Math.ceil(max / step) * step;
     const y = (v) => m.t + ih - (v / top) * ih;
@@ -323,7 +335,7 @@ details summary { cursor: pointer; font-weight: 800; color: var(--muted); font-s
       svg.querySelectorAll(".bar").forEach((b) => b.classList.toggle("dim", +b.dataset.i !== i));
       tip.innerHTML = "";
       const head = document.createElement("div"); head.innerHTML = `<b>${n(tot[i])}</b> visits · ${fmtDay(x.date, { weekday: "short", month: "short", day: "numeric" })}`;
-      const body = document.createElement("div"); body.textContent = `Home ${n(x.home)} · Flashcards ${n(x.flashcards)} · Map ${n(x["map-spotter"])}`;
+      const body = document.createElement("div"); body.textContent = `Home ${n(x.home)} · Flashcards ${n(x.flashcards)} · Map ${n(x["map-spotter"])} · Name Hat ${n(x["name-hat"])}`;
       tip.append(head, body);
       const px = ((m.l + i * bw + bw / 2) / W) * wrap.clientWidth;
       tip.style.left = Math.min(Math.max(px, 110), wrap.clientWidth - 110) + "px";

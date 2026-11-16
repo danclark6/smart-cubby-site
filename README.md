@@ -4,6 +4,7 @@ The code behind [smart-cubby.com](https://smart-cubby.com): free games and study
 
 - **Map Spotter**: click places on the map, with three tries each. Every continent, all 50 US states, and Manhattan neighborhoods and landmarks.
 - **Flashcards**: make a set (or paste a list or a Quizlet export), quiz yourself, and share it with classmates using a short code.
+- **Name Hat**: draw names for a secret gift swap. Everyone gets a private link that shows only whose name they got.
 
 ## Want to help?
 
@@ -52,6 +53,8 @@ public/                      the website, served as-is
     map-logic.js             the game's rules: map addresses, modes, scoring
     maps/                    one file per map (usa.json, manhattan.json...), loaded when a map is picked
   flashcards/                Flashcards: make, share and study card sets
+  name-hat/                  Name Hat: draw names for a gift swap and send private links
+    name-hat-logic.js        the rules: cleaning the name list, the draw, packing results into links
   schools/                   hidden sales pages, PDF overview, cabinet photos
     smart-cubby-demo/        faculty portal demo
   _redirects                 old addresses (like /smart-cubby-demo/) now go to /schools/..., and map addresses go to Map Spotter
@@ -62,7 +65,7 @@ netlify/
   functions/stats.mjs        records anonymous usage counts and builds the stats report
   lib/sets-core.mjs          the rules for sets: codes, size limits, edit-code checks
   lib/stats-core.mjs         what gets counted and how the report adds it up
-tests/                       automatic checks, run with `npm test` (Map Spotter rules and every map file)
+tests/                       automatic checks, run with `npm test` (Map Spotter, every map file, Name Hat)
 .github/workflows/test.yml   runs `npm test` on every pull request and change to main
 netlify.toml                 tells Netlify to publish public/ and where the server program is
 package.json                 the one add-on the server program needs (@netlify/blobs), and `npm test`
@@ -97,12 +100,20 @@ Each map has its own address, like `smart-cubby.com/map-spotter/europe` (`public
 - Sets never expire on their own.
 - **To remove an inappropriate set:** in Netlify, open the site, then **Blobs** → `flashcard-sets`, find the entry named after the share code, and delete it.
 
+## How Name Hat works
+
+- The organizer types the names (and optionally what it's for and a note like a spending limit), then draws. Nobody draws themselves; everyone gives one gift and gets one.
+- Each person gets a private link like `smart-cubby.com/name-hat/#…`. Their result (their name, whose name they got, the title and note) is scrambled into the part after `#`. **Browsers never send that part to the website**, so names and matches are never seen or saved by the site. Name Hat has no server code at all.
+- The scrambling only stops a name being read off the link at a glance. Whoever has the link can open it, so the organizer could peek, just like with a real hat. The page says so.
+- The organizer's hat (names and links) is kept in their own browser for up to 60 days so they can finish sending links, with a button to clear it.
+- Drawing again makes new links. Old links still open but show the old draw, so the page warns to only redraw before anyone has looked.
+
 ## Usage stats
 
-`smart-cubby.com/stats/` shows visits per day and per page, flashcard sets made, opened and studied (with % right), and Map Spotter games per map with average scores. Pick 7 days, 30 days, 90 days or a year.
+`smart-cubby.com/stats/` shows visits per day and per page, flashcard sets made, opened and studied (with % right), Map Spotter games per map with average scores, and Name Hat draws and links opened. Pick 7 days, 30 days, 90 days or a year.
 
 - **Password:** set in Netlify under **Project configuration → Environment variables**, as `STATS_PASSWORD`. To change it, edit the value there and redeploy (Deploys → Trigger deploy).
-- **What's counted:** only *what* was used: page opened, set made/opened/studied, map game started/finished and its score. No names, emails, IP addresses, cookies or device IDs. So the report shows how much the site is used, not how many different people use it.
+- **What's counted:** only *what* was used: page opened, set made/opened/studied, map game started/finished and its score, Name Hat drawn (with how many people) and a link opened. No names, emails, IP addresses, cookies or device IDs. So the report shows how much the site is used, not how many different people use it.
 - **Your own visits:** at the bottom of the stats page, tick "Don't count my own visits on this browser."
 - **New games:** to count a new page, add the same small `scHit` script that's at the bottom of `public/index.html`, and add the page name to `PAGES` in `netlify/lib/stats-core.mjs` and in `public/stats/index.html`.
 - Each count is one tiny entry in the `stats-events` store. To start the counts over, delete that store's entries in Netlify's Blobs page.

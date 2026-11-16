@@ -11,7 +11,7 @@ import { randomBytes, timingSafeEqual, createHash } from "node:crypto";
 export const EVENTS_STORE = "stats-events";
 const TZ = "America/New_York";
 
-const PAGES = new Set(["home", "flashcards", "map-spotter"]);
+const PAGES = new Set(["home", "flashcards", "map-spotter", "name-hat"]);
 const CODE_RE = /^[23456789BCDFGHJKMNPQRSTVWXYZ]{3}-[23456789BCDFGHJKMNPQRSTVWXYZ]{3}$/;
 const REGION_RE = /^[a-z0-9-]{1,32}$/;
 
@@ -40,6 +40,12 @@ export function cleanEvent(ev) {
       const s = intIn(ev.score, 0, 100), n = intIn(ev.n, 1, 500);
       return REGION_RE.test(ev.region || "") && s != null && n != null ? ["ms_finish", ev.region, s, n] : null;
     }
+    case "nh_draw": { // a Name Hat was drawn; n = how many people were in it
+      const n = intIn(ev.n, 3, 60);
+      return n != null ? ["nh_draw", n] : null;
+    }
+    case "nh_reveal": // someone opened their private link
+      return ["nh_reveal"];
     default:
       return null;
   }
@@ -83,8 +89,9 @@ export async function buildReport(eventStore, setStore, days, now = new Date()) 
   const months = [...new Set(dates.map((d) => d.slice(0, 7)))];
   const keys = (await Promise.all(months.map((m) => listKeys(eventStore, `ev/${m}`)))).flat();
 
-  const daily = Object.fromEntries(dates.map((d) => [d, { date: d, home: 0, flashcards: 0, "map-spotter": 0, created: 0, rounds: 0, games: 0 }]));
-  const views = { home: 0, flashcards: 0, "map-spotter": 0 };
+  const daily = Object.fromEntries(dates.map((d) => [d, { date: d, home: 0, flashcards: 0, "map-spotter": 0, "name-hat": 0, created: 0, rounds: 0, games: 0 }]));
+  const views = { home: 0, flashcards: 0, "map-spotter": 0, "name-hat": 0 };
+  const nameHat = { draws: 0, people: 0, reveals: 0 };
   const fc = { created: 0, opened: 0, edited: 0, deleted: 0, rounds: 0, cardsStudied: 0, right: 0 };
   const sets = {};
   const regions = {};
@@ -109,6 +116,8 @@ export async function buildReport(eventStore, setStore, days, now = new Date()) 
       }
       case "ms_start": regionRow(a).started++; day.games++; break;
       case "ms_finish": { const g = regionRow(a); g.finished++; g.scoreSum += +b || 0; g.placesSum += +c || 0; break; }
+      case "nh_draw": nameHat.draws++; nameHat.people += +a || 0; break;
+      case "nh_reveal": nameHat.reveals++; break;
     }
   }
 
@@ -131,6 +140,7 @@ export async function buildReport(eventStore, setStore, days, now = new Date()) 
     range: { from: dates[0], to: dates[dates.length - 1], days, timeZone: TZ },
     daily: dates.map((d) => daily[d]),
     views,
+    nameHat,
     flashcards: { ...fc, storedSets },
     sets: top,
     regions: Object.values(regions)
