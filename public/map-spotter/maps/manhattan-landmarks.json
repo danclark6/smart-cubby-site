@@ -1,0 +1,19 @@
+{
+  "label": "Manhattan Landmarks",
+  "unit": "landmarks",
+  "base": "manhattan",
+  "game": [
+    {"id":"LM-AMNH","name":"American Museum of Natural History","dot":true,"cx":530.3,"cy":868.9},
+    {"id":"LM-APOLLO","name":"Apollo Theater","dot":true,"cx":681.2,"cy":629.7},
+    {"id":"LM-ESB","name":"Empire State Building","dot":true,"cx":456.7,"cy":1142.0},
+    {"id":"LM-ETH","name":"Ethical Culture","dot":true,"cx":488.8,"cy":951.9},
+    {"id":"LM-FLAT","name":"Flatiron Building","dot":true,"cx":431.6,"cy":1202.6},
+    {"id":"LM-GCT","name":"Grand Central Terminal","dot":true,"cx":510.2,"cy":1106.3},
+    {"id":"LM-LC","name":"Lincoln Center","dot":true,"cx":470.5,"cy":942.0},
+    {"id":"LM-MOMA","name":"MoMA","dot":true,"cx":507.6,"cy":1034.1},
+    {"id":"LM-CLOIS","name":"The Cloisters","dot":true,"cx":796.2,"cy":174.2},
+    {"id":"LM-MET","name":"The Met","dot":true,"cx":598.2,"cy":884.7},
+    {"id":"LM-UN","name":"United Nations","dot":true,"cx":568.0,"cy":1137.9},
+    {"id":"LM-WTC","name":"World Trade Center","dot":true,"cx":283.8,"cy":1435.7}
+  ]
+}
